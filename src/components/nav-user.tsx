@@ -100,7 +100,7 @@ export function NavUser({
               </DropdownMenuItem> */}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => {window.location.href = "/auth"}}>
               <LogOut />
               Cerrar sesión
             </DropdownMenuItem>

@@ -6,6 +6,7 @@ import {
   CalendarCheck,
   FileStack,
   LibraryBig,
+  Home,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -35,11 +36,11 @@ const data = {
       items: [
         {
           title: "Ver notas",
-          url: "grades",
+          url: "/students/grades",
         },
         {
           title: "Inscribir",
-          url: "signOn",
+          url: "/students/signOn",
         },
       ],
     },
@@ -50,15 +51,15 @@ const data = {
       items: [
         {
           title: "Carnet estudiantil",
-          url: "#",
+          url: "/students/studentCard",
         },
         {
           title: "Constancia de estudio",
-          url: "#",
+          url: "/students/studyCertificate",
         },
         {
           title: "Constancia de inscripción",
-          url: "#",
+          url: "/students/registrationCertificate",
         },
       ],
     },
@@ -69,29 +70,34 @@ const data = {
       items: [
         {
           title: "Acto de grado",
-          url: "#",
+          url: "/students/degreeAct",
         },
         {
           title: "Notas certificadas",
-          url: "#",
+          url: "/students/certifiedNotes",
         },
       ],
     },
   ],
   navSecondary: [
     {
+      name: "Inicio",
+      url: "/home",
+      icon: Home,
+    },
+    {
       name: "Horarios",
-      url: "schedules",
+      url: "/students/schedules",
       icon: CalendarCheck,
     },
     {
       name: "Historial académico",
-      url: "#",
+      url: "/students/academicHistory",
       icon: FileStack,
     },
     {
       name: "Ver malla curricular",
-      url: "#",
+      url: "/students/curriculumMesh",
       icon: LibraryBig,
     },
   ],

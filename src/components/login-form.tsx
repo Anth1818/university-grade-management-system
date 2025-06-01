@@ -38,17 +38,11 @@ export function LoginForm({
               <div className="grid gap-3">
                 <div className="flex items-center">
                   <Label htmlFor="password">Contraseña</Label>
-                  <a
-                    href="#"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                  >
-                    Olvidaste tu contraseña?
-                  </a>
                 </div>
                 <Input id="password" type="password" required />
               </div>
               <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full">
+                <Button className="w-full" onClick={(e) => { e.preventDefault(); window.location.href = "/home"}}>
                   Iniciar sesión
                 </Button>
               </div>

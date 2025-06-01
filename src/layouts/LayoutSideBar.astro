@@ -1,5 +1,5 @@
 ---
-import "../../../styles/global.css";
+import "../styles/global.css";
 import Sidebar from "@/components/sidebar";
 import Layout from "@/layouts/Layout.astro";
 
@@ -7,9 +7,7 @@ import Layout from "@/layouts/Layout.astro";
 
 <Layout title="UAR | Grades">
   <Sidebar client:load>
-    <div>
-      <h1>Notas</h1>
-    </div>
+   <slot />
   </Sidebar>
 
 </Layout>
