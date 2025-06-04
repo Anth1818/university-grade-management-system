@@ -1,8 +1,9 @@
 ---
 import LayoutSideBar from "../../layouts/LayoutSideBar.astro";
+import { StudentSignOn } from "@/components/students/sign-on";
 
 ---
 
 <LayoutSideBar>
-  <h1>Formulario de Inscripción</h1>
+  <StudentSignOn client:load/>
 </LayoutSideBar>

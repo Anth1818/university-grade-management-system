@@ -1,4 +1,4 @@
-import { LoginForm } from "@/components/login-form"
+import { LoginForm } from "@/components/auth/login-form"
 import logo from "@/assets/uar-logo.png?url"
 
 const LoginPage = () =>{

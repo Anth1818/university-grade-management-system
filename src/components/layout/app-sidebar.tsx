@@ -9,9 +9,9 @@ import {
   Home,
 } from "lucide-react"
 
-import { NavMain } from "@/components/nav-main"
-import { NavSecondary } from "@/components/nav-secondary"
-import { NavUser } from "@/components/nav-user"
+import { NavMain } from "@/components/navegation/nav-main"
+import { NavSecondary } from "@/components/navegation/nav-secondary"
+import { NavUser } from "@/components/navegation/nav-user"
 
 import {
   Sidebar,

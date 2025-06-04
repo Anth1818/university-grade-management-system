@@ -1,8 +1,11 @@
 ---
+import { StudentGrades } from "@/components/students/grades";
 import LayoutSideBar from "../../layouts/LayoutSideBar.astro";
-
+import { ButtonDownload } from "@/components/shared/button-download";
 ---
 
 <LayoutSideBar>
-  <h1>Notas</h1>
+  <StudentGrades>
+    <ButtonDownload client:load/>
+  </StudentGrades>
 </LayoutSideBar>
