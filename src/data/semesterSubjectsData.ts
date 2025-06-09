@@ -1,0 +1,88 @@
+import type { SemesterData } from "@/lib/types";
+
+export const semesterSubjectsData: SemesterData[] = [
+    {
+      semester: "Tercer Semestre",
+      block: "A",
+      subjects: [
+        {
+          id: "1",
+          name: "Programación II",
+          code: "PROG-201",
+          credits: 4,
+          teacher: "Juan Perez",
+          day: "Lunes",
+          time: "8:00 - 10:00",
+        },
+        {
+          id: "2",
+          name: "Bases de Datos I",
+          code: "BD-201",
+          credits: 4,
+          teacher: "Maria Lopez",
+          day: "Martes",
+          time: "8:00 - 10:00",
+        },
+        {
+          id: "3",
+          name: "Matemática Discreta",
+          code: "MATE-201",
+          credits: 3,
+          teacher: "Pedro Ramirez",
+          day: "Miercoles",
+          time: "8:00 - 10:00",
+          },
+        {
+          id: "4",
+          name: "Inglés Técnico",
+          code: "ING-201",
+          credits: 2,
+          teacher: "Ana Martinez",
+          day: "Jueves",
+          time: "8:00 - 10:00",
+        },
+      ],
+    },
+    {
+      semester: "Tercer Semestre",
+      block: "B",
+      subjects: [
+        {
+          id: "1",
+          name: "Programación II",
+          code: "PROG-202",
+          credits: 4,
+          teacher: "Pepito Perez",
+          day: "Lunes",
+          time: "8:00 - 10:00",
+        },
+        {
+          id: "2",
+          name: "Bases de Datos I",
+          code: "BD-202",
+          credits: 4,
+          teacher: "Juan Lopez",
+          day: "Martes",
+          time: "8:00 - 10:00",
+        },
+        {
+          id: "3",
+          name: "Matemática Discreta",
+          code: "MATE-202",
+          credits: 3,
+          teacher: "Leidy Ramirez",
+          day: "Miercoles",
+          time: "8:00 - 10:00",
+          },
+        {
+          id: "4",
+          name: "Inglés Técnico",
+          code: "ING-202",
+          credits: 2,
+          teacher: "Jose Martinez",
+          day: "Jueves",
+          time: "8:00 - 10:00",
+        },
+      ],
+    },
+  ]

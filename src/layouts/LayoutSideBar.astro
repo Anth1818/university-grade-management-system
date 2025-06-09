@@ -1,13 +1,14 @@
 ---
 import "../styles/global.css";
-import Sidebar from "@/components/layout/sidebar";
 import Layout from "@/layouts/Layout.astro";
+import Sidebar from "@/components/layout/Sidebar";
+
+const { title = "UAR | App" } = Astro.props;
 
 ---
 
-<Layout title="UAR | Grades">
+<Layout title={title}>
   <Sidebar client:load>
-   <slot />
+    <slot />
   </Sidebar>
-
 </Layout>

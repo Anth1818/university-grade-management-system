@@ -1,62 +1,37 @@
-"use client"
-
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Download } from "lucide-react"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
-} from "../ui/table"
+} from "../ui/table";
+import { ButtonDownload } from "../shared/ButtonDownload";
+import { gradesData } from "@/data/dataGrades";
+import { ButtonNavigate } from "../shared/ButtonNavigate";
 
-// Definimos el tipo para las notas
-type Grade = {
-  id: string
-  subject: string
-  evaluation1: number
-  evaluation2: number
-  evaluation3: number
-  evaluation4: number
-  finalGrade: number
-}
-
-// Datos de ejemplo (en un caso real, estos vendrían de una API)
-const gradesData: Grade[] = [
-  {
-    id: "1",
-    subject: "Ingles",
-    evaluation1: 15,
-    evaluation2: 16,
-    evaluation3: 13,
-    evaluation4: 17,
-    finalGrade: 15
-  },
-  {
-    id: "2",
-    subject: "Programación 1",
-    evaluation1: 15,
-    evaluation2: 16,
-    evaluation3: 13,
-    evaluation4: 17,
-    finalGrade: 15
-  },
-]
-
-export function StudentGrades({children}: {children: React.ReactNode}) {
+export function StudentGrades() {
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div>
-          <CardTitle className="text-xl font-semibold">Notas del estudiante</CardTitle>
-          <CardDescription>Semestre 2 (actual)</CardDescription>
+          <CardTitle className="text-xl font-semibold">
+            Notas del estudiante
+          </CardTitle>
+          <CardDescription>Semestre 2 (cursando)</CardDescription>
           <CardDescription>Informática</CardDescription>
         </div>
 
         {/* Botón de descargar */}
-        {children}
+        <ButtonDownload onClick={() => alert("Descargando notas...")} />
       </CardHeader>
       <CardContent>
         <Table>
@@ -67,6 +42,10 @@ export function StudentGrades({children}: {children: React.ReactNode}) {
               <TableHead className="text-center">Evaluación 2</TableHead>
               <TableHead className="text-center">Evaluación 3</TableHead>
               <TableHead className="text-center">Evaluación 4</TableHead>
+              <TableHead className="text-center">Evaluación 5</TableHead>
+              <TableHead className="text-center">Evaluación 6</TableHead>
+              <TableHead className="text-center">Evaluación 7</TableHead>
+              <TableHead className="text-center">Evaluación 8</TableHead>
               <TableHead className="text-right">Calificación Final</TableHead>
             </TableRow>
           </TableHeader>
@@ -74,18 +53,57 @@ export function StudentGrades({children}: {children: React.ReactNode}) {
             {gradesData.map((grade) => (
               <TableRow key={grade.id}>
                 <TableCell className="font-medium">{grade.subject}</TableCell>
-                <TableCell className="text-center">{grade.evaluation1}</TableCell>
-                <TableCell className="text-center">{grade.evaluation2}</TableCell>
-                <TableCell className="text-center">{grade.evaluation3}</TableCell>
-                <TableCell className="text-center">{grade.evaluation4}</TableCell>
-                <TableCell className="text-right font-semibold">
+                <TableCell className="text-center">
+                  {grade.evaluation1}
+                </TableCell>
+                <TableCell className="text-center">
+                  {grade.evaluation2}
+                </TableCell>
+                <TableCell className="text-center">
+                  {grade.evaluation3}
+                </TableCell>
+                <TableCell className="text-center">
+                  {grade.evaluation4}
+                </TableCell>
+                <TableCell className="text-center">
+                  {grade.evaluation5}
+                </TableCell>
+                <TableCell className="text-center">
+                  {grade.evaluation6}
+                </TableCell>
+                <TableCell className="text-center">
+                  {grade.evaluation7}
+                </TableCell>
+                <TableCell className="text-center">
+                  {grade.evaluation8}
+                </TableCell>
+                <TableCell className={`text-right font-semibold ${grade.finalGrade < 12 ? "text-red-500" : ""}`}>
                   {grade.finalGrade}
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
+          {gradesData.find((grade) => grade.finalGrade < 12) && (
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={10}>
+                  <h2 className="text-center text-red-500 font-bold text-lg">
+                    Atención: Al no tener todas las asignaturas aprobadas, no se
+                    puede cursar el siguiente semestre, debe consultar el modulo
+                    de recuperación para ver las materias que necesita rendir
+                  </h2>
+                  <ButtonNavigate
+                    url="/students/recoverySubject"
+                    className="mt-2"
+                  >
+                    Ver recuperación
+                  </ButtonNavigate>
+                </TableCell>
+              </TableRow>
+            </TableFooter>
+          )}
         </Table>
       </CardContent>
     </Card>
-  )
+  );
 }
