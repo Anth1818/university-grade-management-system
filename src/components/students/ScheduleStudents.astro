@@ -1,0 +1,125 @@
+---
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { semesterSubjectsData } from "@/data/semesterSubjectsData";
+import { recoverySubjectsData } from "@/data/recoverySubjectsData";
+import type { Subject } from "@/lib/types";
+import { cn } from "@/lib/utils";
+
+const selectedBlock = "A";
+
+const studentNeedRecovery = Astro.props.studentNeedRecovery;
+// Filtrar por defecto el Bloque A para el horario semestral
+const semesterSchedule = studentNeedRecovery
+  ? null
+  : semesterSubjectsData.find((block) => block.block === selectedBlock)
+      ?.subjects || [];
+
+const semesterName =
+  semesterSubjectsData.find((block) => block.block === selectedBlock)
+    ?.semester || "Recuperación";
+
+const recoverySchedule =
+  recoverySubjectsData.find((block) => block.block === selectedBlock)
+    ?.subjects || [];
+---
+
+<Card className={cn("w-full")}>
+  <CardHeader className="flex flex-row items-center justify-between pb-2">
+    <div>
+      <CardTitle>Horario de Clases</CardTitle>
+      <CardDescription>
+        {
+          studentNeedRecovery
+            ? "Detalles de tu horario de recuperación"
+            : "Detalles de tu horario para el semestre actual."
+        }
+      </CardDescription>
+    </div>
+    <div class="flex items-center">
+      <slot name="download-button" />
+    </div>
+  </CardHeader>
+  <CardContent className="space-y-6">
+    {
+      !studentNeedRecovery ? (
+        <div>
+          <h3 class="text-lg font-semibold mb-2">
+            Horario Semestral - {semesterName}
+          </h3>
+          <div class="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Materia</TableHead>
+                  <TableHead>Profesor</TableHead>
+                  <TableHead>Día</TableHead>
+                  <TableHead>Hora</TableHead>
+                  <TableHead>Aula</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {semesterSchedule?.map((subject: Subject) => (
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      {subject.name}
+                    </TableCell>
+                    <TableCell>{subject.teacher}</TableCell>
+                    <TableCell>{subject.day}</TableCell>
+                    <TableCell>{subject.time}</TableCell>
+                    <TableCell>{subject.classroom}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      ) : (
+        <div>
+          <h3 class="text-lg font-semibold mb-2 text-amber-700">
+            Horario de Recuperación
+          </h3>
+          <div class="rounded-md border border-amber-200">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Materia</TableHead>
+                  <TableHead>Profesor</TableHead>
+                  <TableHead>Día</TableHead>
+                  <TableHead>Hora</TableHead>
+                  <TableHead>Aula</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {recoverySchedule?.map((subject: Subject) => (
+                  <TableRow>
+                    <TableCell className="font-medium">
+                      {subject.name}
+                    </TableCell>
+                    <TableCell>{subject.teacher}</TableCell>
+                    <TableCell>{subject.day}</TableCell>
+                    <TableCell>{subject.time}</TableCell>
+                    <TableCell>{subject.classroom}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      )
+    }
+  </CardContent>
+</Card>

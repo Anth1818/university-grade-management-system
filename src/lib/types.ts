@@ -5,6 +5,7 @@ export type Subject = {
     credits: number;
     teacher: string;
     day: string;
+    classroom: string;
     time: string;
    
 };
@@ -33,3 +34,5 @@ export type Grade = {
 export type SemesterSubjects = SemesterData[];
 
 export type SignOnStatus = "eligible" | "not-eligible" | "not-available";
+
+export type RecoveryStatus = 'eligible' | 'not-eligible' | 'already-enrolled';  

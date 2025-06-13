@@ -26,7 +26,10 @@ export const SubjectsBlock = ({ semesterSubjects, setSelectedBlock }: SubjectsBl
                   <p className="font-medium">{subject.name}</p>
                   <p className="text-sm text-muted-foreground">
                     {subject.code} • {subject.credits} créditos •
-                    Profesor/a: {subject.teacher} • Dia: {subject.day} • Hora: {subject.time}
+                    Profesor/a: {subject.teacher} 
+                    <p>• Dia: {subject.day}</p>
+                    <p>• Hora: {subject.time}</p>
+                    <p>• Aula: {subject.classroom}</p>
                   </p>
                 </div>
               </div>

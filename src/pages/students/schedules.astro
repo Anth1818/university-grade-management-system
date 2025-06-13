@@ -1,8 +1,12 @@
 ---
 import LayoutSideBar from "../../layouts/LayoutSideBar.astro";
-
+import ScheduleStudents from "../../components/students/ScheduleStudents.astro";
+import { DownloadScheduleStudentButton } from "../../components/students/DownloadScheduleStudentButton";
+const studentNeedRecovery = false;
 ---
 
 <LayoutSideBar>
-  <h1>Horarios</h1>
+  <ScheduleStudents studentNeedRecovery={studentNeedRecovery}>
+    <DownloadScheduleStudentButton slot="download-button" client:load />
+  </ScheduleStudents>
 </LayoutSideBar>

@@ -157,13 +157,10 @@ export function StudentSignOn() {
 
             <div className="mt-6">
               <Button
-                variant="outline"
                 className="w-full sm:w-auto"
                 onClick={() => {
                   // In a real app, this would navigate to the recovery section
-                  alert(
-                    "Redirigiendo a la sección de recuperación de unidades..."
-                  );
+                 window.location.href = "/students/recoverySubject";
                 }}
               >
                 Ir a recuperación de unidades
