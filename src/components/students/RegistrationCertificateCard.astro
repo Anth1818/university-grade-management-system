@@ -1,0 +1,13 @@
+---
+import CertificateFormat from "./CertificateFormat.astro";
+import RegistrationCertificateContent from "./RegistrationCertificateContent.astro";
+
+const studentName = "Anthony Ruiz";
+const studentId = "123456789";
+const career = "Ingeniería en Informática";
+const date = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+---
+
+<CertificateFormat certificateTitle="Constancia de inscripción">
+    <RegistrationCertificateContent studentName={studentName} studentId={studentId} career={career} date={date} />
+</CertificateFormat>

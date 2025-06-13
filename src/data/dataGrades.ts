@@ -12,7 +12,7 @@ export const gradesData: Grade[] = [
       evaluation6: 16,
       evaluation7: 13,
       evaluation8: 17,
-      finalGrade: 15
+      finalGrade: 11
     },
     {
       id: "2",

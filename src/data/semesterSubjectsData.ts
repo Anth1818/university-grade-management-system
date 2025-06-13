@@ -4,6 +4,7 @@ export const semesterSubjectsData: SemesterData[] = [
     {
       semester: "Tercer Semestre",
       block: "A",
+      turn: "Mañana",
       subjects: [
         {
           id: "1",
@@ -46,6 +47,7 @@ export const semesterSubjectsData: SemesterData[] = [
     {
       semester: "Tercer Semestre",
       block: "B",
+      turn: "Mañana",
       subjects: [
         {
           id: "1",

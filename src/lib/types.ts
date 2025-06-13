@@ -6,11 +6,13 @@ export type Subject = {
     teacher: string;
     day: string;
     time: string;
+   
 };
 
 export type SemesterData = {
     semester: string;
     block: string;
+    turn: string;
     subjects: Subject[];
 };
 

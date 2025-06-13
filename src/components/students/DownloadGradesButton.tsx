@@ -4,20 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface ButtonDownloadProps {
-  className?: string;
-  id?: string;
-  onClick?: () => void;
-}
+export const DownloadGradesButton = ({ className }: { className?: string }) => {
+  const handleDownloadGrades = () => {
+    alert('Descargando las notas del estudiante...');
+    // Aquí iría la lógica real de descarga
+  };
 
-export const ButtonDownload = ({ className, id, onClick }: ButtonDownloadProps) => {
   return (
     <Button 
-      id={id}
-      type="button"
       size="sm" 
-      className={cn("h-8 gap-1 cursor-pointer", className)}
-      onClick={onClick}
+      className={cn("gap-1", className)}
+      onClick={handleDownloadGrades}
     >
       <Download className="h-3.5 w-3.5" />
       <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">

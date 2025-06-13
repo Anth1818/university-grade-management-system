@@ -1,0 +1,67 @@
+---
+import { ButtonDownload } from "../shared/ButtonDownload.tsx";
+import logo from "@/assets/uar-logo.png";
+
+const props = Astro.props;
+const {certificateTitle} = props;
+---
+
+<div id="study-certificate" class="bg-white p-8 rounded-lg shadow-lg max-w-2xl mx-auto  border border-gray-200">
+    <img id="uar-logo" src={logo.src} alt="Logo" class="w-22 h-22 mx-auto mb-8 object-cover rounded-2xl" />
+    <header class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">{certificateTitle}</h1>
+        <p class="text-gray-500 mt-2">Universidad Autónoma Ruiz</p>
+    </header>
+
+   <slot />
+
+    <footer class="text-center mt-12">
+        <div class="mb-8">
+            <p class="border-t-2 border-gray-400 w-64 mx-auto pt-2">Firma Autorizada</p>
+            <p class="text-sm text-gray-500">Secretaría Académica</p>
+        </div>
+    </footer>
+</div>
+
+<div class="flex justify-center">
+    <ButtonDownload client:load id="print-button" />
+</div>
+
+<script>
+    document.getElementById('print-button')?.addEventListener('click', () => {
+        window.print();
+    });
+</script>
+
+<style is:global>
+    @page {
+        size: auto;
+        margin: 0;
+    }
+    @media print {
+        body {
+            background: white !important;
+        }
+        body * {
+            visibility: hidden;
+        }
+        #study-certificate, #study-certificate * {
+            visibility: visible;
+        }
+        #study-certificate {
+            position: absolute;
+            top: 35%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: none !important;
+            border: none !important;
+            margin: 0 !important;
+            width: 100%;
+        }
+
+        #print-button {
+            display: none;
+        }
+        
+    }
+</style>

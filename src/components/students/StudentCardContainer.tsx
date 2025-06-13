@@ -1,5 +1,5 @@
 import { ButtonDownload } from "../shared/ButtonDownload";
-import { StudentCardId } from "./student-card";
+import { StudentCardId } from "./StudentCard";
 
 export const StudentCardContainer = () => {
   const handleDownload = () => {
