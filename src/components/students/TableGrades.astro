@@ -46,8 +46,6 @@ const { className } = Astro.props;
           <TableHead className="text-center">Evaluación 4</TableHead>
           <TableHead className="text-center">Evaluación 5</TableHead>
           <TableHead className="text-center">Evaluación 6</TableHead>
-          <TableHead className="text-center">Evaluación 7</TableHead>
-          <TableHead className="text-center">Evaluación 8</TableHead>
           <TableHead className="text-right">Calificación Final</TableHead>
         </TableRow>
       </TableHeader>
@@ -62,8 +60,6 @@ const { className } = Astro.props;
               <TableCell className="text-center">{grade.evaluation4}</TableCell>
               <TableCell className="text-center">{grade.evaluation5}</TableCell>
               <TableCell className="text-center">{grade.evaluation6}</TableCell>
-              <TableCell className="text-center">{grade.evaluation7}</TableCell>
-              <TableCell className="text-center">{grade.evaluation8}</TableCell>
               <TableCell
                 className={`text-right font-semibold ${grade.finalGrade < 12 ? "text-red-500" : ""}`}
               >

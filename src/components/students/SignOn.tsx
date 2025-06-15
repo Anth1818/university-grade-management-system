@@ -14,23 +14,21 @@ import {
   ArrowRight,
 } from "lucide-react";
 
-
 import type { SignOnStatus, SemesterData } from "@/lib/types";
 import { semesterSubjectsData } from "@/data/semesterSubjectsData";
 import { SubjectsBlockAccordion } from "./SubjectsBlockAccordion";
-
-
+import {AlredyEnrolled} from "./AlredyEnrolled";
 
 export function StudentSignOn() {
   const [status, setStatus] = useState<SignOnStatus>("eligible"); // Default to 'eligible' for demo
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [semesterSubjects, setSemesterSubjects] =
-    useState<SemesterData[] | null>(null);
-
+  const [semesterSubjects, setSemesterSubjects] = useState<
+    SemesterData[] | null
+  >(null);
 
   const [selectedBlock, setSelectedBlock] = useState<string | null>(null);
-      
+
   // Simulate fetching data
   useEffect(() => {
     const fetchData = async () => {
@@ -64,9 +62,7 @@ export function StudentSignOn() {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      alert(
-        "¡Inscripción exitosa! Se ha registrado su solicitud para el próximo semestre."
-      );
+      setStatus("already-enrolled");
     } catch (error) {
       console.error("Error during registration:", error);
       alert(
@@ -115,10 +111,14 @@ export function StudentSignOn() {
               </div>
             </div>
 
-            {semesterSubjects && <SubjectsBlockAccordion semesterSubjects={semesterSubjects} setSelectedBlock={setSelectedBlock} />}
+            {semesterSubjects && (
+              <SubjectsBlockAccordion
+                semesterSubjects={semesterSubjects}
+                setSelectedBlock={setSelectedBlock}
+              />
+            )}
 
             <div className="mt-6">
-              
               <Button
                 onClick={handleConfirmRegistration}
                 disabled={isSubmitting || !selectedBlock}
@@ -160,7 +160,7 @@ export function StudentSignOn() {
                 className="w-full sm:w-auto"
                 onClick={() => {
                   // In a real app, this would navigate to the recovery section
-                 window.location.href = "/students/recoverySubject";
+                  window.location.href = "/students/recoverySubject";
                 }}
               >
                 Ir a recuperación de unidades
@@ -168,6 +168,11 @@ export function StudentSignOn() {
               </Button>
             </div>
           </div>
+        );
+
+      case "already-enrolled":
+        return (
+          <AlredyEnrolled message="Te has inscrito correctamente al semestre." />
         );
 
       case "not-available":

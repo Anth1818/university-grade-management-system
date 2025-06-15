@@ -33,6 +33,7 @@ export type Grade = {
 
 export type SemesterSubjects = SemesterData[];
 
-export type SignOnStatus = "eligible" | "not-eligible" | "not-available";
-
 export type RecoveryStatus = 'eligible' | 'not-eligible' | 'already-enrolled';  
+
+export type SignOnStatus = RecoveryStatus | 'not-available';
+

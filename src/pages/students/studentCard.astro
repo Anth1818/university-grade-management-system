@@ -1,8 +1,11 @@
 ---
+import StudentCardContainer from "@/components/students/StudentCardContainer.astro";
 import LayoutSideBar from "../../layouts/LayoutSideBar.astro";
-import { StudentCardContainer } from "@/components/students/StudentCardContainer";
+import {DownloadStudentCardButton} from "@/components/students/DownloadStudentCardButton";
 ---
 
 <LayoutSideBar>
-  <StudentCardContainer client:load />
+  <StudentCardContainer>
+  <DownloadStudentCardButton slot="download-button" client:load/>
+  </StudentCardContainer>
 </LayoutSideBar>
