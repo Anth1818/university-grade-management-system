@@ -1,4 +1,4 @@
-import { ButtonDownload } from "../shared/ButtonDownload";
+import { ButtonDownload } from "@/components/shared/ButtonDownload";
 
 export const DownloadStudentCardButton = () => {
     return (

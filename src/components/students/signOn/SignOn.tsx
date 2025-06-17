@@ -16,8 +16,8 @@ import {
 
 import type { SignOnStatus, SemesterData } from "@/lib/types";
 import { semesterSubjectsData } from "@/data/semesterSubjectsData";
-import { SubjectsBlockAccordion } from "./SubjectsBlockAccordion";
-import {AlredyEnrolled} from "./AlredyEnrolled";
+import { SubjectsBlockAccordion } from "../general/SubjectsBlockAccordion";
+import {AlredyEnrolled} from "../general/AlredyEnrolled";
 
 export function StudentSignOn() {
   const [status, setStatus] = useState<SignOnStatus>("eligible"); // Default to 'eligible' for demo

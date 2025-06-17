@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { AlertCircle } from 'lucide-react';
-import { SubjectsBlockAccordion } from './SubjectsBlockAccordion';
+import { SubjectsBlockAccordion } from '../general/SubjectsBlockAccordion';
 import { recoverySubjectsData } from '@/data/recoverySubjectsData';
 import type { RecoveryStatus } from '@/lib/types';
-import {AlredyEnrolled} from "./AlredyEnrolled";
+import {AlredyEnrolled} from "../general/AlredyEnrolled";
 
 
 export function RecoverySubjects() {

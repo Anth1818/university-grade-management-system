@@ -1,5 +1,5 @@
 import type { SemesterData, SemesterSubjects } from "@/lib/types";
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "../ui/accordion";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "../../ui/accordion";
 import { SubjectsBlock } from "./SubjectsBlock";
 // No necesitamos importar useBlockSelection aquí ya que no lo estamos usando en este componente
 

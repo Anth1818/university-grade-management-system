@@ -1,5 +1,5 @@
 import { CheckCircle2, ArrowRight } from "lucide-react";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 
 export const AlredyEnrolled = ({ message }: { message: string }) => {
   return (
