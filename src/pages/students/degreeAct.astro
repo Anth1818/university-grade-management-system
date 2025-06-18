@@ -1,8 +1,9 @@
 ---
 import LayoutSideBar from "../../layouts/LayoutSideBar.astro";
+import { DegreeActCard } from "@/components/students/degreeAct/DegreeAct";
 
 ---
 
 <LayoutSideBar>
-  <h1>Solicitud de Acta de Titulacion</h1>
+  <DegreeActCard client:load/>
 </LayoutSideBar>

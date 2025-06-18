@@ -6,6 +6,7 @@ import { SubjectsBlockAccordion } from '../general/SubjectsBlockAccordion';
 import { recoverySubjectsData } from '@/data/recoverySubjectsData';
 import type { RecoveryStatus } from '@/lib/types';
 import {AlredyEnrolled} from "../general/AlredyEnrolled";
+import { Loader } from '@/components/shared/Loader';
 
 
 export function RecoverySubjects() {
@@ -31,10 +32,7 @@ export function RecoverySubjects() {
   const renderContent = () => {
     if (isLoading) {
       return (
-        <div className="flex flex-col items-center justify-center p-8 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mb-4"></div>
-          <p className="text-muted-foreground">Cargando opciones de recuperación...</p>
-        </div>
+        <Loader message="Cargando opciones de recuperación..." />
       );
     }
 

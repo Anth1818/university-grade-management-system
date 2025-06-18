@@ -18,6 +18,7 @@ import type { SignOnStatus, SemesterData } from "@/lib/types";
 import { semesterSubjectsData } from "@/data/semesterSubjectsData";
 import { SubjectsBlockAccordion } from "../general/SubjectsBlockAccordion";
 import {AlredyEnrolled} from "../general/AlredyEnrolled";
+import { Loader } from "@/components/shared/Loader";
 
 export function StudentSignOn() {
   const [status, setStatus] = useState<SignOnStatus>("eligible"); // Default to 'eligible' for demo
@@ -76,12 +77,7 @@ export function StudentSignOn() {
   const renderContent = () => {
     if (isLoading) {
       return (
-        <div className="flex flex-col items-center justify-center p-8 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mb-4"></div>
-          <p className="text-muted-foreground">
-            Verificando tu estado académico...
-          </p>
-        </div>
+        <Loader message="Verificando tu estado académico..." />
       );
     }
 
