@@ -1,8 +1,8 @@
 ---
 import LayoutSideBar from "../../layouts/LayoutSideBar.astro";
-
+import { CertifiedNotesCard } from "@/components/students/certifiedNotes/CertifiedNotes";
 ---
 
 <LayoutSideBar>
-  <h1>Notas Certificadas</h1>
+  <CertifiedNotesCard client:load/>
 </LayoutSideBar>

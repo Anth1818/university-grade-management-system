@@ -11,55 +11,27 @@ import {
 } from "lucide-react";
 import { Loader } from "@/components/shared/Loader";
 import type { DegreeActStatus } from "@/lib/types";
-import { Eligible } from "./Eligible";
-import { NotEligible } from "./NotEligible";
-import { AlreadyRequested } from "./AlreadyRequested";
-import { PeriodClosed } from "./PeriodClosed";
-import { Error } from "./Error";
+import { Eligible } from "../general/Eligible";
+import { NotEligible } from "../general/NotEligible";
+import { AlreadyRequested } from "../general/AlreadyRequested";
+import { PeriodClosed } from "../general/PeriodClosed";
+import { Error } from "../general/Error";
+import useEligibility from "@/hooks/useEligibility";
 
 export function DegreeActCard() {
-  const [status, setStatus] = useState<DegreeActStatus>("checking");
-  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { status, academicDegree, isLoading } = useEligibility();
+  const [localStatus, setLocalStatus] = useState<DegreeActStatus>("checking");
 
-  // Simulate checking degree act eligibility
-  useEffect(() => {
-    const checkEligibility = async () => {
-      try {
-        // In a real app, you would fetch this from your API
-        // const response = await fetch('/api/student/degree-act/status');
-        // const data = await response.json();
-
-        // Mock API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        // Mock response - in a real app, this would come from your API
-        const mockResponse = {
-          isDegreeActPeriod: false, // Check if it's currently the degree act period
-          isEligible: false, // Check if student meets all requirements
-          hasRequested: false, // Check if student already requested
-        };
-
-        if (!mockResponse.isDegreeActPeriod) {
-          setStatus("period-closed");
-        } else if (mockResponse.hasRequested) {
-          setStatus("already-requested");
-        } else if (mockResponse.isEligible) {
-          setStatus("eligible");
-        } else {
-          setStatus("not-eligible");
-        }
-      } catch (error) {
-        console.error("Error checking degree act status:", error);
-        setStatus("error");
-      } finally {
-        setIsLoading(false);
+   useEffect(() => {
+      if (status === 'loading') {
+        setLocalStatus('checking');
+      } else {
+        setLocalStatus(status as DegreeActStatus);
       }
-    };
+    }, [status]);
 
-    checkEligibility();
-  }, []);
-
+    
   const handleRequestDegreeAct = async () => {
     setIsSubmitting(true);
     try {
@@ -70,7 +42,7 @@ export function DegreeActCard() {
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
       // On success, update status
-      setStatus("already-requested");
+      setLocalStatus("already-requested");
     } catch (error) {
       console.error("Error requesting degree act:", error);
       alert(
@@ -88,9 +60,9 @@ export function DegreeActCard() {
       );
     }
 
-    switch (status) {
+    switch (localStatus) {
       case "eligible":
-        return <Eligible handleRequestDegreeAct={handleRequestDegreeAct} isSubmitting={isSubmitting} />
+        return <Eligible handleRequest={handleRequestDegreeAct} isSubmitting={isSubmitting} academicDegree={academicDegree} />
 
       case "not-eligible":
         return <NotEligible />

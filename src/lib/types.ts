@@ -37,5 +37,11 @@ export type RecoveryStatus = 'eligible' | 'not-eligible' | 'already-enrolled';
 
 export type SignOnStatus = RecoveryStatus | 'not-available';
 
-export type DegreeActStatus = 'checking' | 'eligible' | 'not-eligible' | 'already-requested' | 'period-closed' | 'error';
+export type Status = 'checking' | 'eligible' | 'not-eligible' | 'already-requested' | 'period-closed' | 'error';
+
+export type DegreeActStatus = Status;
+
+export type CertifiedNotesStatus = Status;
+
+export type EligibilityStatus = Status | 'loading';
 
