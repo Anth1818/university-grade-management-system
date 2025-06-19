@@ -2,7 +2,7 @@ import * as React from "react"
 import { NavMain } from "@/components/navigation/NavMain"
 import { NavSecondary } from "@/components/navigation/NavSecondary"
 import { NavUser } from "@/components/navigation/NavUser"
-import { dataSidebar } from "@/data/dataSidebar"
+import { dataSidebar } from "@/data/sidebarData"
 
 import {
   Sidebar,
