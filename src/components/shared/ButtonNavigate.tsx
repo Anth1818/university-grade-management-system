@@ -18,7 +18,7 @@ export const ButtonNavigate = ({ className, id, url, children }: ButtonNavigateP
       id={id}
       type="button"
       size="sm" 
-      className={cn("h-8 gap-1 cursor-pointer", className)}
+      className={cn("h-8 gap-1 cursor-pointer dark:bg-gray-800 dark:text-white", className)}
       onClick={() => {
         window.location.href = url;
       }}

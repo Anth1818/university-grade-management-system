@@ -118,7 +118,7 @@ export function StudentSignOn() {
               <Button
                 onClick={handleConfirmRegistration}
                 disabled={isSubmitting || !selectedBlock}
-                className="w-full sm:w-auto cursor-pointer"
+                className="w-full sm:w-auto cursor-pointer dark:bg-gray-800 dark:text-white"
               >
                 {isSubmitting ? "Procesando..." : "Confirmar inscripción"}
               </Button>

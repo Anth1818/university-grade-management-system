@@ -41,7 +41,7 @@ export function RecoverySubjects() {
         return (
           <div className="space-y-6">
             <SubjectsBlockAccordion semesterSubjects={recoverySubjectsData} setSelectedBlock={setSelectedBlock} />
-            <Button onClick={handleConfirmRecovery} disabled={isSubmitting || !selectedBlock} className="w-full sm:w-auto">
+            <Button onClick={handleConfirmRecovery} disabled={isSubmitting || !selectedBlock} className="w-full sm:w-auto cursor-pointer dark:bg-gray-800 dark:text-white">
               {isSubmitting ? 'Procesando...' : 'Confirmar Inscripción a Recuperación'}
             </Button>
           </div>

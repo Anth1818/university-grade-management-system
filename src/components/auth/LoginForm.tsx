@@ -9,13 +9,17 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { ThemeToggle } from "@/components/ui/theme-toggle"
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <div className={cn("flex flex-col gap-6 relative", className)} {...props}>
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
       <Card>
         <CardHeader>
           <CardTitle>Ingresa con tu cuenta</CardTitle>

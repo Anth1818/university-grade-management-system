@@ -6,10 +6,10 @@ const props = Astro.props;
 const {certificateTitle} = props;
 ---
 
-<div id="study-certificate" class="bg-white p-8 rounded-lg shadow-lg max-w-2xl mx-auto  border border-gray-200">
+<div id="certificate" class="bg-white p-8 rounded-lg shadow-lg max-w-2xl mx-auto  border border-gray-200 dark:bg-gray-800 dark:text-white">
     <img id="uar-logo" src={logo.src} alt="Logo" class="w-22 h-22 mx-auto mb-8 object-cover rounded-2xl" />
     <header class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-800">{certificateTitle}</h1>
+        <h1 class="text-3xl font-bold">{certificateTitle}</h1>
         <p class="text-gray-500 mt-2">Universidad Autónoma Ruiz</p>
     </header>
 
@@ -31,6 +31,7 @@ const {certificateTitle} = props;
     document.getElementById('print-button')?.addEventListener('click', () => {
         window.print();
     });
+    
 </script>
 
 <style is:global>
@@ -45,11 +46,12 @@ const {certificateTitle} = props;
         body * {
             visibility: hidden;
         }
-        #study-certificate, #study-certificate * {
+        #certificate, #certificate * {
             visibility: visible;
         }
-        #study-certificate {
+        #certificate {
             position: absolute;
+            color: black !important;
             top: 35%;
             left: 50%;
             transform: translate(-50%, -50%);

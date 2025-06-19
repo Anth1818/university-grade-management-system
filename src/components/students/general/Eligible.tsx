@@ -31,7 +31,7 @@ export function Eligible({
           <Button 
             onClick={handleRequest} 
             disabled={isSubmitting}
-            className="cursor-pointer"
+            className="cursor-pointer dark:bg-gray-800 dark:text-white"
           >
             {isSubmitting ? 'Procesando...' : 'Solicitar Notas Certificadas'}
           </Button>
@@ -54,7 +54,7 @@ export function Eligible({
           <Button 
             onClick={handleRequest} 
             disabled={isSubmitting}
-            className="cursor-pointer"
+            className="cursor-pointer dark:bg-gray-800 dark:text-white"
           >
             {isSubmitting ? 'Procesando...' : 'Solicitar Acto de Grado'}
           </Button>

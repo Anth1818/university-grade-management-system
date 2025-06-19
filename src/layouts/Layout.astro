@@ -1,24 +1,32 @@
 ---
 // src/layouts/Layout.astro
-// Ya no importamos Providers aquí
 
 const { title = 'Sistema de Gestión Universitaria' } = Astro.props;
+
+// Script para manejar el tema antes de que se hidrate React
+const themeScript = `
+  (function() {
+    const theme = localStorage.getItem('theme') || 
+                 (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  })();
+`;
 ---
 
 <!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="stylesheet" href="/styles/global.css" />
-		<meta name="generator" content={Astro.generator} />
-		<title>{title}</title> {/* Usamos la variable title definida arriba */}
-	</head>
-	<body>
-		{/* El <slot /> directamente. SidebarWithProviders se encargará del contexto */}
-		<slot />
-	</body>
+<html lang="es" class={Astro.url.pathname.startsWith('/auth') ? 'bg-background' : ''}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="stylesheet" href="/styles/global.css" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <script is:inline>{themeScript}</script>
+  </head>
+  <body class="min-h-screen bg-background font-sans antialiased">
+    <slot />
+  </body>
 </html>
 
 <style>
