@@ -1,0 +1,49 @@
+---
+import SectionCard from './SectionCard.tsx';
+import { ButtonDownload } from '@/components/shared/ButtonDownload.tsx';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+
+const sections = [
+  { sectionNumber: '001', career: 'Informática', semester: 1, totalStudents: 35 },
+  { sectionNumber: '003', career: 'Informática', semester: 1, totalStudents: 30 },
+  { sectionNumber: '004', career: 'Informática', semester: 2, totalStudents: 27 },
+  { sectionNumber: '011', career: 'Turismo', semester: 2, totalStudents: 35 },
+  { sectionNumber: '012', career: 'Turismo', semester: 2, totalStudents: 30 },
+  { sectionNumber: '013', career: 'Turismo', semester: 3, totalStudents: 29 },
+];
+
+interface Props {
+  className?: string;
+}
+
+const { className } = Astro.props;
+---
+
+<Card className={cn("w-full", className)}>
+  <CardHeader className="flex flex-row items-center justify-between pb-2">
+    <div class="space-y-1">
+      <CardTitle className="text-3xl">Secciones</CardTitle>
+      <CardDescription className="text-sm">Gestiona las secciones a tu cargo</CardDescription>
+    </div>
+  </CardHeader>
+  <CardContent>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {sections.map(section => (
+        <SectionCard
+          sectionNumber={section.sectionNumber}
+          career={section.career}
+          semester={section.semester}
+          totalStudents={section.totalStudents}
+          client:load
+        />
+      ))}
+    </div>
+  </CardContent>
+</Card>

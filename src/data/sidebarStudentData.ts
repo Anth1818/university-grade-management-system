@@ -8,7 +8,7 @@ import {
     Home,
   } from "lucide-react"
 
-export const dataSidebar = {
+export const dataSidebarStudent = {
     user: {
       name: "Anthony Ruiz",
       email: "correo@gmail.com",

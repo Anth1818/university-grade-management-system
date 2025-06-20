@@ -10,9 +10,10 @@ interface ButtonNavigateProps {
   id?: string;
   url: string;
   children: React.ReactNode;
+  icon?: React.ReactNode;
 }
 
-export const ButtonNavigate = ({ className, id, url, children }: ButtonNavigateProps) => {
+export const ButtonNavigate = ({ className, id, url, children, icon }: ButtonNavigateProps) => {
   return (
     <Button 
       id={id}
@@ -23,7 +24,8 @@ export const ButtonNavigate = ({ className, id, url, children }: ButtonNavigateP
         window.location.href = url;
       }}
     >
-      <Navigation className="h-3.5 w-3.5" />
+      {icon ? icon : <Navigation />}
+
       <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
         {children}
       </span>
