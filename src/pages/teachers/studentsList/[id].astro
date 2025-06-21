@@ -1,0 +1,26 @@
+---
+import LayoutSideBar from "@/layouts/LayoutSideBar.astro";
+import { studentsListData } from '@/data/studentsListData';
+import { StudentListTable } from './StudentListTable';
+
+const { id } = Astro.params;
+
+// Obtener los estudiantes de la sección actual
+const section = studentsListData.find(sec => sec.section === id);
+const students = section?.students || [];
+
+// Configuración de paginación
+const itemsPerPage = 5;
+---
+
+<LayoutSideBar>
+  <div class="container mx-auto p-6">
+    <h1 class="text-2xl font-bold mb-6">Lista de Estudiantes - Sección {id}</h1>
+    
+    <StudentListTable 
+      students={students}
+      itemsPerPage={itemsPerPage}
+      client:load
+    />
+  </div>
+</LayoutSideBar>

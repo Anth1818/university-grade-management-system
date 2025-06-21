@@ -17,11 +17,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <img
-          src="../../public/favicon.svg"
-          alt="logo"
-          className="w-25 m-auto rounded-xl"
-        />
+       <h2 className="text-xl font-bold text-center text-gray-800 dark:text-white pt-2">Universidad Autónoma Ruiz</h2>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={dataSidebarTeacher.navMain} />
