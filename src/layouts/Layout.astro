@@ -1,20 +1,18 @@
 ---
 // src/layouts/Layout.astro
+import { ClientRouter } from "astro:transitions";
+const { title = "Sistema de Gestión Universitaria" } = Astro.props;
 
-const { title = 'Sistema de Gestión Universitaria' } = Astro.props;
 
-// Script para manejar el tema antes de que se hidrate React
-const themeScript = `
-  (function() {
-    const theme = localStorage.getItem('theme') || 
-                 (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-  })();
-`;
+
 ---
 
 <!doctype html>
-<html lang="es" class={Astro.url.pathname.startsWith('/auth') ? 'bg-background' : ''}>
+<html
+  lang="es"
+  class={Astro.url.pathname.startsWith("/auth") ? "bg-background" : ""}
+  transition:name="root" transition:animate="fade"
+>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
@@ -22,7 +20,19 @@ const themeScript = `
     <link rel="stylesheet" href="/styles/global.css" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
-    <script is:inline>{themeScript}</script>
+    <ClientRouter />
+    <script is:inline>
+      {
+        (function () {
+          const theme =
+            localStorage.getItem("theme") ||
+            (window.matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light");
+          document.documentElement.classList.toggle("dark", theme === "dark");
+        })();
+      }
+    </script>
   </head>
   <body class="min-h-screen bg-background font-sans antialiased">
     <slot />
@@ -30,10 +40,10 @@ const themeScript = `
 </html>
 
 <style>
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
-	}
+  html,
+  body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+  }
 </style>
