@@ -1,6 +1,6 @@
-export const studentsListData = [
+export const sectionListData = [
     {
-     section: "001",
+     idSection: "001",
      students: [
         {
             id: 1,
@@ -8,7 +8,7 @@ export const studentsListData = [
             email: "jperez@university.edu",
             phone: "123-456-7890",
             address: "123 Main St, Anytown, USA",
-            
+            idSection: "001"
         },
         {
             id: 2,
@@ -16,7 +16,7 @@ export const studentsListData = [
             email: "mgarcia@university.edu",
             phone: "987-654-3210",
             address: "456 Elm St, Anytown, USA",
-            
+            idSection: "001"
         },
         {
             id: 3,
@@ -24,7 +24,7 @@ export const studentsListData = [
             email: "pmartinez@university.edu",
             phone: "555-555-5555",
             address: "789 Oak St, Anytown, USA",
-            
+            idSection: "001"
         },
         {
             id: 4,
@@ -32,7 +32,7 @@ export const studentsListData = [
             email: "arodriguez@university.edu",
             phone: "111-222-3333",
             address: "321 Pine St, Anytown, USA",
-            
+            idSection: "001"
         },
         {
             id: 5,
@@ -40,7 +40,7 @@ export const studentsListData = [
             email: "clopez@university.edu",
             phone: "444-555-6666",
             address: "654 Birch St, Anytown, USA",
-            
+            idSection: "001"
         },
         {
             id: 6,
@@ -48,7 +48,7 @@ export const studentsListData = [
             email: "ltorres@university.edu",
             phone: "777-888-9999",
             address: "987 Cedar St, Anytown, USA",
-            
+            idSection: "001"
         },
         {
            id: 7,
@@ -56,7 +56,7 @@ export const studentsListData = [
            email: "lrodriguez@university.edu",
            phone: "888-999-0000",
            address: "321 Pine St, Anytown, USA",
-           
+           idSection: "001"
         },
         {
             id: 8,
@@ -64,7 +64,7 @@ export const studentsListData = [
             email: "arodriguez@university.edu",
             phone: "111-222-3333",
             address: "321 Pine St, Anytown, USA",
-            
+            idSection: "001"
         },
         {
             id: 9,
@@ -72,7 +72,7 @@ export const studentsListData = [
             email: "arodriguez@university.edu",
             phone: "111-222-3333",
             address: "321 Pine St, Anytown, USA",
-            
+            idSection: "001"
         },
         {
             id: 10,
@@ -80,8 +80,61 @@ export const studentsListData = [
             email: "arodriguez@university.edu",
             phone: "111-222-3333",
             address: "321 Pine St, Anytown, USA",
-            
-        }
+            idSection: "001"
+        },
+        {
+            id: 11,
+            name: "Ana María Rodríguez",
+            email: "arodriguez@university.edu",
+            phone: "111-222-3333",
+            address: "321 Pine St, Anytown, USA",
+            idSection: "001"
+        },
+        {
+            id: 12,
+            name: "Ana María Rodríguez",
+            email: "arodriguez@university.edu",
+            phone: "111-222-3333",
+            address: "321 Pine St, Anytown, USA",
+            idSection: "001"
+        },
+        {
+            id: 13,
+            name: "Ana María Rodríguez",
+            email: "arodriguez@university.edu",
+            phone: "111-222-3333",
+            address: "321 Pine St, Anytown, USA",
+            idSection: "001"
+        },
+        {
+            id: 14,
+            name: "Ana María Rodríguez",
+            email: "arodriguez@university.edu",
+            phone: "111-222-3333",
+            address: "321 Pine St, Anytown, USA",
+            idSection: "001"
+        },
+        {
+            id: 15,
+            name: "Ana María Rodríguez",
+            email: "arodriguez@university.edu",
+            phone: "111-222-3333",
+            address: "321 Pine St, Anytown, USA",
+            idSection: "001"
+        },
+        {
+            id: 16,
+            name: "Ana María Rodríguez",
+            email: "arodriguez@university.edu",
+            phone: "111-222-3333",
+            address: "321 Pine St, Anytown, USA",
+            idSection: "001"
+        },
      ]   
     },
 ];
+
+export const getStudentById = (id: string | number | undefined) => {
+    if (id === undefined) return [];
+    return sectionListData.map(section => section.students.find(student => student.id.toString() === id.toString()));
+}

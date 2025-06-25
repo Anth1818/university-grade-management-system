@@ -4,12 +4,12 @@ export type Teacher = {
 };
 
 export type Subject = {
-    id: string;
+    id: string | number;
     name: string;
     code: string;
     credits: number;
     teacher: string; // Keeping for backward compatibility
-    teachers: Teacher[];
+    teachers?: Teacher[];
     day: string;
     classroom: string;
     time: string;
@@ -49,4 +49,13 @@ export type DegreeActStatus = Status;
 export type CertifiedNotesStatus = Status;
 
 export type EligibilityStatus = Status | 'loading';
+
+export type StudentDetailsType = {
+    id: string | number;
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+    idSection: string | number | undefined;
+}
 

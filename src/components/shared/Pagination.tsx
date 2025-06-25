@@ -12,7 +12,7 @@ interface PaginationProps {
   totalItems: number;
 }
 
-export function Pagination({
+export default function Pagination({
   currentPage,
   totalPages,
   onPageChange,

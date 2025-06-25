@@ -1,13 +1,32 @@
 ---
 import LayoutSideBar from "@/layouts/LayoutSideBar.astro";
+import StudentDetails from "@/components/teachers/chargeNoteStudent/StudentDetails.astro";
+import { getStudentById } from "@/data/sectionsListData";
+import ChargeStudentNotesForm from "@/components/teachers/chargeNoteStudent/ChargeStudentNotesForm.tsx";
+import type { StudentDetailsType } from "@/lib/types";
+import ChargeStudentContainer from "@/components/teachers/chargeNoteStudent/ChargeStudentContainer";
 
 const { id } = Astro.params;
-
+const student: (StudentDetailsType | undefined)[] = getStudentById(id);
 ---
 
-<LayoutSideBar>
-  <div class="container mx-auto p-6">
-    <h1 class="text-2xl font-bold mb-6">Cargar Notas</h1>
-   <p class="text-lg text-gray-600 dark:text-gray-300">Estudiante: {id}</p>
-  </div>
+<LayoutSideBar title={`Notas de ${student ? student[0]?.name : "Estudiante"}`}>
+  <ChargeStudentContainer sectionId={student[0]?.idSection}>
+    {
+      student && student[0] ? (
+        <>
+          <StudentDetails student={student[0]} />
+          <ChargeStudentNotesForm client:load studentId={student[0]?.id} />
+        </>
+      ) : (
+        <div
+          class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+          role="alert"
+        >
+          <strong class="font-bold">Error: </strong>
+          <span class="block sm:inline">Estudiante no encontrado.</span>
+        </div>
+      )
+    }
+  </ChargeStudentContainer>
 </LayoutSideBar>

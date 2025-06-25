@@ -16,7 +16,7 @@ export const ButtonDownload = ({ className, id, onClick }: ButtonDownloadProps) 
       id={id}
       type="button"
       size="sm" 
-      className={cn("h-8 gap-1 cursor-pointer dark:bg-gray-800 dark:text-white", className)}
+      className={cn("button-styles-main", className)}
       onClick={onClick}
     >
       <Download className="h-3.5 w-3.5" />

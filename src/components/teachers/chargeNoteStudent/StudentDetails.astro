@@ -1,0 +1,49 @@
+---
+import type { StudentDetailsType } from "@/lib/types";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+
+interface Props {
+  student: StudentDetailsType;
+  className?: string;
+}
+
+const { student, className } = Astro.props;
+---
+
+<Card className={cn("w-full font-cascadia-code mb-6", className)}>
+  <CardHeader className="pb-4">
+    <CardTitle>Detalles del Estudiante</CardTitle>
+    <CardDescription>Información personal del estudiante</CardDescription>
+  </CardHeader>
+  <CardContent>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="space-y-1">
+        <p class="text-sm font-medium text-muted-foreground">ID del Estudiante</p>
+        <p class="text-base">{student.id}</p>
+      </div>
+      <div class="space-y-1">
+        <p class="text-sm font-medium text-muted-foreground">Nombre Completo</p>
+        <p class="text-base">{student.name}</p>
+      </div>
+      <div class="space-y-1">
+        <p class="text-sm font-medium text-muted-foreground">Correo Electrónico</p>
+        <p class="text-base break-all">{student.email}</p>
+      </div>
+      <div class="space-y-1">
+        <p class="text-sm font-medium text-muted-foreground">Teléfono</p>
+        <p class="text-base">{student.phone}</p>
+      </div>
+      <div class="space-y-1 md:col-span-2">
+        <p class="text-sm font-medium text-muted-foreground">Dirección</p>
+        <p class="text-base">{student.address}</p>
+      </div>
+    </div>
+  </CardContent>
+</Card>
