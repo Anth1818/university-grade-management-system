@@ -10,13 +10,14 @@ import { Users, ListCheck } from "lucide-react";
 import { ButtonNavigate } from "@/components/shared/ButtonNavigate";
 
 interface Props {
-  sectionNumber: string;
+  sectionNumber: string; 
   career: string;
   semester: number;
   totalStudents: number;
+  turn: string;
 }
 
-const SectionCard = ({ sectionNumber, career, semester, totalStudents }: Props) => {
+const SectionCard = ({ sectionNumber, career, semester, totalStudents, turn }: Props) => {
   return (
     <Card className="font-cascadia-code chalk-effect flex flex-col justify-between h-full">
       <CardHeader>
@@ -26,6 +27,7 @@ const SectionCard = ({ sectionNumber, career, semester, totalStudents }: Props) 
       <CardContent>
         <p>Semestre: {semester}</p>
         <p>Total de estudiantes: {totalStudents}</p>
+        <p>Turno: {turn}</p>
       </CardContent>
       <CardFooter className="flex flex-col gap-2 items-stretch">
         <ButtonNavigate url={`/teachers/studentsList/${sectionNumber}`} icon={<Users />}>Ver lista de estudiantes</ButtonNavigate>

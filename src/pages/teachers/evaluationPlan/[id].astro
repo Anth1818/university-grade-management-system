@@ -1,10 +1,49 @@
 ---
 import LayoutSideBar from "@/layouts/LayoutSideBar.astro";
+import EvaluationPlanContainer from "@/components/teachers/evaluationPlan/EvaluationPlanContainer";
+import { getSectionById } from "@/data/sectionsListData";
+import SectionDetails from "@/components/teachers/evaluationPlan/SectionDetails.astro";
+import EvaluationPlanForm from "@/components/teachers/evaluationPlan/EvaluationPlanForm.tsx";
+import type { Section } from "@/lib/types";
 
 const { id } = Astro.params;
+
+if (!id) {
+    return Astro.redirect('/teachers/sections');
+}
+
+const sectionData : Section | undefined = getSectionById(id);
+
+if(!sectionData){
+    return Astro.redirect('/teachers/sections');
+}
+
+const { idSection, career, semester, totalStudents, turn }  = sectionData;
 
 ---
 
 <LayoutSideBar>
-  <h1>Evaluation Plan {id}</h1>
+  <EvaluationPlanContainer>
+    <>
+    {
+      sectionData && (
+        <>
+          <SectionDetails section={{idSection, career, semester, totalStudents, turn}}/>
+          <EvaluationPlanForm client:load/>
+        </>
+      )
+    }
+    {
+    !sectionData && (
+      <div
+        class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+        role="alert"
+      >
+        <strong class="font-bold">Error: </strong>
+          <span class="block sm:inline">Sección no encontrada.</span>
+        </div>
+      ) 
+    }
+    </>
+  </EvaluationPlanContainer>
 </LayoutSideBar>

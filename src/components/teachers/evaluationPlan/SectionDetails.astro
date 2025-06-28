@@ -1,0 +1,54 @@
+---
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+
+interface Props {
+  section: {
+    idSection: string;
+    career: string;
+    semester: number;
+    totalStudents: number;
+    turn: string;
+  };
+  className?: string;
+}
+
+const { section, className } = Astro.props;
+---
+
+<Card className={cn("w-full font-cascadia-code mb-6", className)}>
+  <CardHeader className="pb-4">
+    <CardTitle>Detalles de la Sección</CardTitle>
+    <CardDescription>Información general de la sección</CardDescription>
+  </CardHeader>
+  <CardContent>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="space-y-1">
+        <p class="text-sm font-medium text-muted-foreground">Número de Sección</p>
+        <p class="text-base">{section.idSection}</p>
+      </div>
+      <div class="space-y-1">
+        <p class="text-sm font-medium text-muted-foreground">Carrera</p>
+        <p class="text-base">{section.career}</p>
+      </div>
+      <div class="space-y-1">
+        <p class="text-sm font-medium text-muted-foreground">Semestre</p>
+        <p class="text-base">{section.semester}° Semestre</p>
+      </div>
+      <div class="space-y-1">
+        <p class="text-sm font-medium text-muted-foreground">Total de Estudiantes</p>
+        <p class="text-base">{section.totalStudents} estudiantes</p>
+      </div>
+      <div class="space-y-1">
+        <p class="text-sm font-medium text-muted-foreground">Turno</p>
+        <p class="text-base">{section.turn}</p>
+      </div>
+    </div>
+  </CardContent>
+</Card>

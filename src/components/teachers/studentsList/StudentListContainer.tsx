@@ -26,7 +26,7 @@ export default function StudentListContainer({students, itemsPerPage, idSection}
                     icon={<ArrowBigLeft className="h-4 w-4" />}
                     
                 >
-                    Volver a Secciones
+                    Regresar
                 </ButtonNavigate>
             </div>
             

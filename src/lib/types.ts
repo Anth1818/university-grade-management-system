@@ -59,3 +59,23 @@ export type StudentDetailsType = {
     idSection: string | number | undefined;
 }
 
+export type Section = {
+    idSection: string;
+    career: string;
+    semester: number;
+    turn: string;
+    totalStudents: number;
+    students?: Array<{
+        id: number;
+        name: string;
+        email: string;
+        phone: string;
+        address: string;
+        idSection: string;
+    }>;
+    id?: number;
+    name?: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+}

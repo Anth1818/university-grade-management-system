@@ -30,7 +30,7 @@ interface Props {
 }
 
 const notes: Note[] = [
-  { id: 1, name: "Evaluación 1", grade: 5 },
+  { id: 1, name: "Evaluación 1", grade: 15 },
   { id: 2, name: "Evaluación 2", grade: 2 },
   { id: 3, name: "Evaluación 3", grade: 15 },
   { id: 4, name: "Evaluación 4", grade: 10 },
