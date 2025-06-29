@@ -1,0 +1,17 @@
+---
+import CardId from "@/components/shared/CardId.astro";
+---
+
+<div class="flex flex-col justify-center items-center h-full">
+  <h2 class="text-xl font-semibold mb-4">Carnet docente</h2>
+  <CardId
+    name="Anthony"
+    lastName="Ruiz"
+    id="12345678"
+    campus="Principal"
+    program="Ingeniería en Informática, Licenciatura en contabilidad"
+    universityName="UNIVERSIDAD AUTÓNOMA RUIZ"
+    role="Docente"
+  />
+  <slot name="download-button" />
+</div>

@@ -1,8 +1,12 @@
 ---
 import LayoutSideBar from "@/layouts/LayoutSideBar.astro";
+import ScheduleTeachers from "@/components/teachers/schedule/ScheduleTeachers.astro";
+import { DownloadScheduleTeacherButton } from "@/components/teachers/schedule/DownloadScheduleTeacherButton";
 
 ---
 
 <LayoutSideBar>
-  <h1>Horarios</h1>
+  <ScheduleTeachers>
+    <DownloadScheduleTeacherButton slot="download-button" client:load />
+  </ScheduleTeachers>
 </LayoutSideBar>

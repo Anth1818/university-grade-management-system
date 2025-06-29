@@ -73,9 +73,7 @@ export type Section = {
         address: string;
         idSection: string;
     }>;
-    id?: number;
-    name?: string;
-    email?: string;
-    phone?: string;
-    address?: string;
+    classroom?: string;
+    day?: string;
+    time?: string;
 }

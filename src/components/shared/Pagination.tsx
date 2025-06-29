@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from "lucide-react";
+import {useIsMobile} from "@/hooks/use-mobile";
 
 interface PaginationProps {
   currentPage: number;
@@ -20,6 +21,7 @@ export default function Pagination({
   itemsPerPage,
   totalItems,
 }: PaginationProps) {
+  const isMobile = useIsMobile();
   const handleFirstPage = () => onPageChange(1);
   const handlePrevPage = () => onPageChange(Math.max(1, currentPage - 1));
   const handleNextPage = () => onPageChange(Math.min(totalPages, currentPage + 1));
@@ -28,7 +30,7 @@ export default function Pagination({
   return (
     <div className="flex items-center justify-between w-full px-4">
       <div className="text-sm text-muted-foreground">
-        Mostrando {startIndex + 1}-{Math.min(startIndex + itemsPerPage, totalItems)} de {totalItems} estudiantes
+        {isMobile ? "" : `Mostrando ${startIndex + 1}-${Math.min(startIndex + itemsPerPage, totalItems)} de ${totalItems} estudiantes`}
       </div>
       <div className="flex items-center space-x-2">
         <Button

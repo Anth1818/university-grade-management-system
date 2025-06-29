@@ -1,8 +1,11 @@
 ---
 import LayoutSideBar from "@/layouts/LayoutSideBar.astro";
-
+import TeacherCardContainer from "@/components/teachers/teacherCardId/TeacherCardContainer.astro";
+import { DownloadTeacherCardButton } from "@/components/teachers/teacherCardId/DownloadTeacherCardButton";
 ---
 
 <LayoutSideBar>
-  <h1>Card de profesor</h1>
+  <TeacherCardContainer>
+    <DownloadTeacherCardButton slot="download-button" client:load/>
+  </TeacherCardContainer>
 </LayoutSideBar>

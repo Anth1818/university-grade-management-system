@@ -7,6 +7,9 @@ export const sectionListData: Section[] = [
      semester: 1,
      turn: 'Mañana',
      totalStudents: 16,
+     classroom: 'A-101',
+     day: 'Lunes',
+     time: '8:00 - 10:00',
      students: [
         {
             id: 1,
@@ -138,11 +141,11 @@ export const sectionListData: Section[] = [
         },
      ]   
     },
-    { idSection: '112', career: 'Informática', semester: 1, turn: 'Tarde', totalStudents: 30 },
-    { idSection: '123', career: 'Informática', semester: 2, turn: 'Noche', totalStudents: 27 },
-    { idSection: '221', career: 'Turismo', semester: 2, turn: 'Mañana', totalStudents: 35 },
-    { idSection: '222', career: 'Turismo', semester: 2, turn: 'Tarde', totalStudents: 30 },
-    { idSection: '233', career: 'Turismo', semester: 3, turn: 'Noche', totalStudents: 29 },
+    { idSection: '112', career: 'Informática', semester: 1, turn: 'Tarde', totalStudents: 30, classroom: 'A-101', day: 'Lunes', time: '2:00 - 4:00' },
+    { idSection: '123', career: 'Informática', semester: 2, turn: 'Noche', totalStudents: 27, classroom: 'A-102', day: 'Martes', time: '18:00 - 20:00' },
+    { idSection: '221', career: 'Turismo', semester: 2, turn: 'Mañana', totalStudents: 35, classroom: 'A-103', day: 'Miercoles', time: '10:00 - 12:00' },
+    { idSection: '222', career: 'Turismo', semester: 2, turn: 'Tarde', totalStudents: 30, classroom: 'A-104', day: 'Jueves', time: '14:00 - 16:00' },
+    { idSection: '233', career: 'Turismo', semester: 3, turn: 'Noche', totalStudents: 29, classroom: 'A-105', day: 'Viernes', time: '19:00 - 21:00' },
 ];
 
 export const getStudentById = (id: string | number | undefined) => {

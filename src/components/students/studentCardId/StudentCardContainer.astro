@@ -1,19 +1,18 @@
 ---
-import StudentCard from "./StudentCard.astro";
-
+import CardId from "@/components/shared/CardId.astro";
 
 ---
   
     <div class="flex flex-col justify-center items-center h-full">
-      <h2 class="text-xl font-semibold mb-4">Carne estudiantil</h2>
-      <StudentCard
+      <h2 class="text-xl font-semibold mb-4">Carnet estudiantil</h2>
+      <CardId
         name="Anthony"
         lastName="Ruiz"
-        studentId="12345678"
+        id="12345678"
         program="Ingeniería en Informática"
         campus="Principal"
         universityName="UNIVERSIDAD AUTÓNOMA RUIZ"
-
+        role="Estudiante"
       />
       <slot name="download-button" />
     </div>

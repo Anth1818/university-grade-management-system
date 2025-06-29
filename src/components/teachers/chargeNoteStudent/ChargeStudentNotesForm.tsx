@@ -114,7 +114,7 @@ const ChargeStudentNotesForm: React.FC<Props> = ({ studentId, className }) => {
                 min="0"
                 max="20"
                 required
-                className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="notNumberArrows"
                 placeholder={selectedNote ? `Nota actual: ${selectedNote.grade}` : "Seleccione una evaluación"}
               />
             </div>

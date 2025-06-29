@@ -1,0 +1,13 @@
+---
+import CertificateFormat from "@/components/shared/CertificateFormat.astro";
+import WorkCertificateContent from "./WorkCertificateContent.astro";
+
+const teacherName = "Anthony Ruiz";
+const teacherId = "123456789";
+const career = "Ingeniería en Informática";
+const date = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+---
+
+<CertificateFormat certificateTitle="Constancia de trabajo">
+    <WorkCertificateContent teacherName={teacherName} teacherId={teacherId} career={career} date={date} />
+</CertificateFormat>

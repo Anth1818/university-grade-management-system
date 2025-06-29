@@ -32,7 +32,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarFooter className="flex flex-col gap-2">
         <div className="flex justify-center">
           <span className="text-xs">
-            {open ? `Ultima conexión: ${new Date().toLocaleString()}` : ""}
+            {open ? `Ultima conexión: 27 de junio de 2025` : ""}
           </span>
         </div>
         <div className="flex justify-center">

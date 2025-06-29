@@ -18,16 +18,16 @@ interface EvaluationItem {
   name: string;
   topic: string;
   description: string;
-  percentage: number;
+  percentage: string;
   date: string;
 }
 
 const EvaluationPlanForm = () => {
   const [evaluations, setEvaluations] = useState<EvaluationItem[]>([
-    { id: 1, name: '', topic: '', description: '', percentage: 0, date: '' },
-    { id: 2, name: '', topic: '', description: '', percentage: 0, date: '' },
-    { id: 3, name: '', topic: '', description: '', percentage: 0, date: '' },
-    { id: 4, name: '', topic: '', description: '', percentage: 0, date: '' },
+    { id: 1, name: '', topic: '', description: '', percentage: '', date: '' },
+    { id: 2, name: '', topic: '', description: '', percentage: '', date: '' },
+    { id: 3, name: '', topic: '', description: '', percentage: '', date: '' },
+    { id: 4, name: '', topic: '', description: '', percentage: '', date: '' },
   ]);
   
   // Initial evaluations are the first 4 items
@@ -45,7 +45,7 @@ const EvaluationPlanForm = () => {
     const newId = evaluations.length > 0 ? Math.max(...evaluations.map(e => e.id)) + 1 : 1;
     setEvaluations([
       ...evaluations,
-      { id: newId, name: '', topic: '', description: '', percentage: 0, date: '' }
+      { id: newId, name: '', topic: '', description: '', percentage: '', date: '' }
     ]);
   };
 
@@ -61,6 +61,14 @@ const EvaluationPlanForm = () => {
     console.log('Evaluation Plan Submitted:', evaluations);
     // Here you would typically make an API call to save the evaluation plan
   };
+
+    const handlePercentageChange = (id: number, value: number) => {
+      // Value is now passed directly as a number
+      // Allow a number between 0 and 20
+      if (value >= 0 && value <= 25) {
+        handleInputChange(id, 'percentage', value.toString());
+      }
+    };
 
   return (
     <Card className={cn("w-full font-cascadia-code")}>
@@ -100,9 +108,10 @@ const EvaluationPlanForm = () => {
                     <Input
                       type="number"
                       min="0"
-                      max="100"
+                      max="25"
+                      className="notNumberArrows"
                       value={evalItem.percentage}
-                      onChange={(e) => handleInputChange(evalItem.id, 'percentage', Number(e.target.value))}
+                      onChange={(e) => handlePercentageChange(evalItem.id, Number(e.target.value))}
                       required
                     />
                   </div>

@@ -1,0 +1,71 @@
+---
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import type { Section } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { sectionListData } from "@/data/sectionsListData";
+---
+
+<Card className={cn("w-full")}>
+  <CardHeader className="flex flex-row items-center justify-between pb-2">
+    <div>
+      <CardTitle>Horario de Clases</CardTitle>
+      <CardDescription>
+        Detalles de tu horario para el semestre actual.
+      </CardDescription>
+    </div>
+    <div class="flex items-center">
+      <slot name="download-button" />
+    </div>
+  </CardHeader>
+  <CardContent className="space-y-6">
+    <div>
+      <h3 class="text-lg font-semibold mb-2">Horario Semestral</h3>
+      <div class="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Sección</TableHead>
+              <TableHead>Carrera</TableHead>
+              <TableHead>Semestre</TableHead>
+              <TableHead>Turno</TableHead>
+              <TableHead>Día</TableHead>
+              <TableHead>Hora</TableHead>
+              <TableHead>Aula</TableHead>
+              <TableHead>Total de Alumnos</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {
+              sectionListData?.map((section: Section) => (
+                <TableRow>
+                  <TableCell className="font-medium">{section.idSection}</TableCell>
+                  <TableCell>{section.career}</TableCell>
+                  <TableCell>{section.semester}</TableCell>
+                  <TableCell>{section.turn}</TableCell>
+                  <TableCell>{section.day}</TableCell>
+                  <TableCell>{section.time}</TableCell>
+                  <TableCell>{section.classroom}</TableCell>
+                  <TableCell>{section.totalStudents}</TableCell>
+                </TableRow>
+              ))
+            }
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  </CardContent>
+</Card>
