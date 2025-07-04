@@ -1,0 +1,35 @@
+---
+import AssingTeacherCard from "./AssingTeacherCard";
+import Filters from "./Filters";
+import { useState } from "react";
+---
+
+<main class="container mx-auto py-6 px-4 md:px-6">
+    <div class="space-y-6">
+        <div>
+            <h1 class="text-2xl font-bold tracking-tight">Asignación de Profesores</h1>
+            <p class="text-muted-foreground">Gestiona la asignación de profesores a las asignaturas</p>
+        </div>
+        
+        <Filters 
+          client:load
+          onFilterChange={(filters) => {
+            // This will be handled by the client-side script
+            const card = document.querySelector('assing-teacher-card');
+            if (card) {
+              card.setAttribute('career', filters.career);
+              card.setAttribute('semester', filters.semester);
+              card.setAttribute('block', filters.block);
+              card.setAttribute('turn', filters.turn);
+            }
+          }}
+        />
+        <AssingTeacherCard 
+          client:load
+          career="Ingeniería en Sistemas"
+          semester="Tercer Semestre"
+          block="A"
+          turn="Mañana"
+        />
+    </div>
+</main>

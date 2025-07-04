@@ -1,6 +1,11 @@
-export type Teacher = {
+export type TeacherNameAndEmail = {
     name: string;
     email?: string;
+};
+
+export type TeacherIdAndName = {
+    id: string;
+    name: string;
 };
 
 export type Subject = {
@@ -8,14 +13,16 @@ export type Subject = {
     name: string;
     code: string;
     credits: number;
-    teacher: string; // Keeping for backward compatibility
-    teachers?: Teacher[];
+    teacherAssing: TeacherIdAndName | null; 
+    teachers?: TeacherNameAndEmail[];
+    teacherOptions?: TeacherIdAndName[];
     day: string;
     classroom: string;
     time: string;
 };
 
 export type SemesterData = {
+    career?: string;
     semester: string;
     block: string;
     turn: string;
