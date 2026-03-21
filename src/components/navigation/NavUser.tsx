@@ -1,5 +1,4 @@
-"use client"
-
+import { actions } from "astro:actions"
 import {
   UserRoundCog,
   UserRound,
@@ -38,6 +37,11 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+
+  async function handleLogout() {
+    await actions.auth.logout()
+    window.location.href = "/auth"
+  }
 
   return (
     <SidebarMenu>
@@ -78,13 +82,6 @@ export function NavUser({
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {/* <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <Sparkles />
-                Upgrade to Pro
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator /> */}
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <UserRound />
@@ -94,13 +91,9 @@ export function NavUser({
                 <UserRoundCog />
                 Soporte
               </DropdownMenuItem>
-              {/* <DropdownMenuItem>
-                <Bell />
-                Notifications
-              </DropdownMenuItem> */}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => {window.location.href = "/auth"}}>
+            <DropdownMenuItem onClick={handleLogout}>
               <LogOut />
               Cerrar sesión
             </DropdownMenuItem>

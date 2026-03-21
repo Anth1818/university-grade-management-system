@@ -1,0 +1,33 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import "../styles/global.css";
+
+const hasSession = Boolean(Astro.locals.user);
+---
+
+<Layout title="Acceso denegado">
+  <main class="min-h-screen grid place-items-center px-6 py-12 bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+    <section class="w-full max-w-xl rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/80 shadow-xl p-8 text-center">
+      <p class="text-sm font-semibold tracking-wider text-red-600 dark:text-red-400">ERROR 403</p>
+      <h1 class="mt-2 text-3xl font-bold text-slate-900 dark:text-slate-100">No tienes permisos para entrar a esta ruta</h1>
+      <p class="mt-4 text-slate-600 dark:text-slate-300">
+        Tu sesión está activa, pero el rol actual no tiene acceso a esta sección.
+      </p>
+
+      <div class="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
+        {hasSession ? (
+          <a href="/home" class="inline-flex items-center justify-center rounded-lg bg-slate-900 dark:bg-slate-100 px-4 py-2.5 text-sm font-semibold text-white dark:text-slate-900 hover:opacity-90 transition-opacity">
+            Ir al inicio
+          </a>
+        ) : (
+          <a href="/auth" class="inline-flex items-center justify-center rounded-lg bg-slate-900 dark:bg-slate-100 px-4 py-2.5 text-sm font-semibold text-white dark:text-slate-900 hover:opacity-90 transition-opacity">
+            Iniciar sesion
+          </a>
+        )}
+        <a href="/" class="inline-flex items-center justify-center rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          Volver al portal
+        </a>
+      </div>
+    </section>
+  </main>
+</Layout>

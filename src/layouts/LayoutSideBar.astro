@@ -4,11 +4,12 @@ import Layout from "@/layouts/Layout.astro";
 import Sidebar from "@/components/layout/Sidebar";
 
 const { title = "UAR | App" } = Astro.props;
+const { user } = Astro.locals;
 
 ---
 
 <Layout title={title}>
-  <Sidebar client:load>
+  <Sidebar client:load user={user}>
     <slot />
   </Sidebar>
 </Layout>
