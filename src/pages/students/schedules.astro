@@ -2,11 +2,63 @@
 import LayoutSideBar from "../../layouts/LayoutSideBar.astro";
 import ScheduleStudents from "../../components/students/schedule/ScheduleStudents.astro";
 import { DownloadScheduleStudentButton } from "../../components/students/schedule/DownloadScheduleStudentButton";
-const studentNeedRecovery = true;
+import { db } from "@/lib/db";
+import { enrollments, sections, subjects, users } from "@/lib/db/schema";
+import { eq, and } from "drizzle-orm";
+
+const user = Astro.locals.user;
+
+if (!user || user.role !== 'student') {
+  return Astro.redirect("/auth");
+}
+
+// Check if student has recovery enrollments
+const recoveryEnrollments = await db
+  .select({
+    name: subjects.name,
+    teacher: users.name,
+    day: sections.day,
+    time: sections.time,
+    classroom: sections.classroom,
+  })
+  .from(enrollments)
+  .where(and(eq(enrollments.studentId, user.id), eq(enrollments.recovery, true)))
+  .innerJoin(sections, eq(enrollments.sectionId, sections.id))
+  .innerJoin(subjects, eq(sections.subjectId, subjects.id))
+  .innerJoin(users, eq(sections.teacherId, users.id));
+
+const hasRecovery = recoveryEnrollments.length > 0;
+
+// Fetch regular enrollments (status 'enrolled' and not recovery)
+const regularEnrollments = await db
+  .select({
+    name: subjects.name,
+    teacher: users.name,
+    day: sections.day,
+    time: sections.time,
+    classroom: sections.classroom,
+    semester: sections.semester,
+  })
+  .from(enrollments)
+  .where(and(
+    eq(enrollments.studentId, user.id), 
+    eq(enrollments.recovery, false),
+    eq(enrollments.status, 'enrolled')
+  ))
+  .innerJoin(sections, eq(enrollments.sectionId, sections.id))
+  .innerJoin(subjects, eq(sections.subjectId, subjects.id))
+  .innerJoin(users, eq(sections.teacherId, users.id));
+
+const schedule = hasRecovery ? recoveryEnrollments : regularEnrollments;
+const currentSemester = regularEnrollments[0]?.semester ? `Semestre ${regularEnrollments[0].semester}` : "Actual";
 ---
 
 <LayoutSideBar>
-  <ScheduleStudents studentNeedRecovery={studentNeedRecovery}>
+  <ScheduleStudents 
+    studentNeedRecovery={hasRecovery} 
+    schedule={schedule}
+    semesterName={currentSemester}
+  >
     <DownloadScheduleStudentButton slot="download-button" client:load />
   </ScheduleStudents>
 </LayoutSideBar>

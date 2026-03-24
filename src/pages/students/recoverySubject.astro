@@ -1,8 +1,95 @@
 ---
 import LayoutSideBar from "@/layouts/LayoutSideBar.astro";
-import RecoverySubjects from "@/components/students/recoverySubject/RecoverySubjects";
+import RecoverySubjectsComponent from "@/components/students/recoverySubject/RecoverySubjects";
+import { db } from "@/lib/db";
+import { enrollments, sections, subjects, grades, users } from "@/lib/db/schema";
+import { eq, and, lt } from "drizzle-orm";
+
+const user = Astro.locals.user;
+
+if (!user || user.role !== 'student') {
+  return Astro.redirect("/auth");
+}
+
+// 1. Check for current recovery enrollments
+const currentRecovery = await db
+  .select()
+  .from(enrollments)
+  .where(and(eq(enrollments.studentId, user.id), eq(enrollments.recovery, true)))
+  .limit(1);
+
+let status = currentRecovery.length > 0 ? 'already-enrolled' : 'not-eligible';
+
+// 2. Check for failed subjects if not already enrolled
+let failedSubjects = [];
+if (status === 'not-eligible') {
+  failedSubjects = await db
+    .select({
+      subjectId: subjects.id,
+      name: subjects.name,
+    })
+    .from(enrollments)
+    .where(and(
+      eq(enrollments.studentId, user.id),
+      eq(enrollments.status, 'completed'),
+      lt(grades.finalGrade, 10)
+    ))
+    .innerJoin(grades, eq(grades.enrollmentId, enrollments.id))
+    .innerJoin(sections, eq(enrollments.sectionId, sections.id))
+    .innerJoin(subjects, eq(sections.subjectId, subjects.id));
+
+  if (failedSubjects.length > 0) {
+    status = 'eligible';
+  }
+}
+
+// 3. Fetch available recovery blocks (semester 0)
+const recoverySections = await db
+  .select({
+    id: sections.id,
+    name: subjects.name,
+    code: subjects.code,
+    credits: subjects.credits,
+    teacher: users.name,
+    day: sections.day,
+    time: sections.time,
+    classroom: sections.classroom,
+    block: sections.block,
+  })
+  .from(sections)
+  .where(eq(sections.semester, 0))
+  .innerJoin(subjects, eq(sections.subjectId, subjects.id))
+  .innerJoin(users, eq(sections.teacherId, users.id));
+
+// Group by block for the component
+const blocks = [];
+const blockNames = [...new Set(recoverySections.map(s => s.block))];
+
+for (const blockName of blockNames) {
+  const blockSections = recoverySections.filter(s => s.block === blockName);
+  blocks.push({
+    semester: "Recuperación",
+    block: blockName,
+    turn: "Mixto",
+    subjects: blockSections.map(s => ({
+      id: s.id,
+      name: s.name,
+      code: s.code,
+      credits: s.credits,
+      teacherAssing: { id: "1", name: s.teacher },
+      day: s.day,
+      time: s.time,
+      classroom: s.classroom,
+    }))
+  });
+}
 ---
 
 <LayoutSideBar>
-  <RecoverySubjects client:load />
+  <RecoverySubjectsComponent 
+    initialStatus={status as any} 
+    availableBlocks={blocks} 
+    studentId={user.id} 
+    client:load 
+  />
 </LayoutSideBar>

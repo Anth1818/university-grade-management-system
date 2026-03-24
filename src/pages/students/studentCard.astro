@@ -2,10 +2,30 @@
 import StudentCardContainer from "@/components/students/studentCardId/StudentCardContainer.astro";
 import LayoutSideBar from "../../layouts/LayoutSideBar.astro";
 import {DownloadStudentCardButton} from "@/components/students/studentCardId/DownloadStudentCardButton";
+import { db } from "@/lib/db";
+import { subjects, enrollments, sections } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
+
+const user = Astro.locals.user;
+
+if (!user || user.role !== 'student') {
+  return Astro.redirect("/auth");
+}
+
+// Fetch user's career from their latest enrollment
+const latestEnrollment = await db
+  .select({ career: subjects.career })
+  .from(enrollments)
+  .where(eq(enrollments.studentId, user.id))
+  .innerJoin(sections, eq(enrollments.sectionId, sections.id))
+  .innerJoin(subjects, eq(sections.subjectId, subjects.id))
+  .limit(1);
+
+const career = latestEnrollment[0]?.career || "Ingeniería en Computación";
 ---
 
 <LayoutSideBar>
-  <StudentCardContainer>
-  <DownloadStudentCardButton slot="download-button" client:load/>
+  <StudentCardContainer user={user} career={career}>
+    <DownloadStudentCardButton slot="download-button" client:load/>
   </StudentCardContainer>
 </LayoutSideBar>

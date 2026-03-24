@@ -18,16 +18,27 @@ import { academicHistoryData } from "@/data/academicHistoryData";
 
 interface AcademicHistoryProps {
   className?: string;
+  history: any[];
 }
 
-export default function AcademicHistory({ className }: AcademicHistoryProps) {
-  const [selectedDegree, setSelectedDegree] = useState(academicHistoryData[0].degree);
+export default function AcademicHistory({ className, history }: AcademicHistoryProps) {
+  if (!history || history.length === 0) {
+    return (
+      <Card className={cn("w-full", className)}>
+        <CardContent className="p-6 text-center text-muted-foreground">
+          No hay historial académico disponible.
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const [selectedDegree, setSelectedDegree] = useState(history[0].degree);
   
   // Get unique degrees for the select dropdown
-  const degrees = Array.from(new Set(academicHistoryData.map(history => history.degree)));
+  const degrees = Array.from(new Set(history.map(h => h.degree)));
   
   // Get the selected degree data
-  const selectedDegreeData = academicHistoryData.find(history => history.degree === selectedDegree) || academicHistoryData[0];
+  const selectedDegreeData = history.find(h => h.degree === selectedDegree) || history[0];
 
   return (
     <Card className={cn("w-full", className)}>
@@ -56,14 +67,14 @@ export default function AcademicHistory({ className }: AcademicHistoryProps) {
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          {selectedDegreeData.semesters.map((semester) => (
+          {selectedDegreeData.semesters.map((semester: any) => (
             <div key={semester.semester} className="border rounded-lg overflow-hidden">
               <div className="bg-gray-50 dark:bg-gray-800 px-6 py-3 flex justify-between items-center">
                 <div>
-                  <h3 className="font-medium">{semester.semester}</h3>
+                  <h3 className="font-medium">Semestre {semester.semester}</h3>
                   <p className="text-sm text-muted-foreground">
                     {semester.status === 'completed' ? 'Completado' : 
-                     semester.status === 'in-progress' ? 'En progreso' : 'Pendiente'}
+                     semester.status === 'enrolled' ? 'En progreso' : 'Pendiente'}
                   </p>
                 </div>
                 <div className="flex gap-4">
@@ -98,7 +109,7 @@ export default function AcademicHistory({ className }: AcademicHistoryProps) {
                       </tr>
                     </thead>
                     <tbody className="divide-y">
-                      {semester.grades.map((grade) => (
+                      {semester.grades.map((grade: any) => (
                         <tr key={grade.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                           <td className="px-6 py-2">{grade.subject}</td>
                           <td className="text-center">{grade.evaluation1 || '-'}</td>
@@ -110,7 +121,7 @@ export default function AcademicHistory({ className }: AcademicHistoryProps) {
                           <td 
                             className={cn(
                               "px-4 py-2 text-right font-medium",
-                              grade.finalGrade < 12 ? 'text-red-500' : ''
+                              grade.finalGrade > 0 && grade.finalGrade < 10 ? 'text-red-500' : ''
                             )}
                           >
                             {grade.finalGrade}

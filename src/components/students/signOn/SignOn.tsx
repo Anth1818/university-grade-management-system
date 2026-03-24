@@ -20,49 +20,24 @@ import { SubjectsBlockAccordion } from "../general/SubjectsBlockAccordion";
 import {AlredyEnrolled} from "../general/AlredyEnrolled";
 import { Loader } from "@/components/shared/Loader";
 
-export function StudentSignOn() {
-  const [status, setStatus] = useState<SignOnStatus>("eligible"); // Default to 'eligible' for demo
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [semesterSubjects, setSemesterSubjects] = useState<
-    SemesterData[] | null
-  >(null);
+interface StudentSignOnProps {
+  initialStatus: SignOnStatus;
+  availableBlocks: any[];
+  studentId: string;
+}
 
+export function StudentSignOn({ initialStatus, availableBlocks, studentId }: StudentSignOnProps) {
+  const [status, setStatus] = useState<SignOnStatus>(initialStatus);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedBlock, setSelectedBlock] = useState<string | null>(null);
 
-  // Simulate fetching data
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // In a real app, you would fetch this from your API
-        // const response = await fetch('/api/student/status');
-        // const data = await response.json();
-        // setStatus(data.status);
-        // setSemesterSubjects(data.subjects);
-
-        // Mock data for demonstration
-        setTimeout(() => {
-          setSemesterSubjects(semesterSubjectsData);
-          setIsLoading(false);
-        }, 1000);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
   const handleConfirmRegistration = async () => {
+    if (!selectedBlock) return;
     setIsSubmitting(true);
     try {
-      // In a real app, you would submit the registration here
-      // await fetch('/api/student/register', { method: 'POST' });
-
-      // Simulate API call
+      // Simulation for demo
       await new Promise((resolve) => setTimeout(resolve, 1500));
-
       setStatus("already-enrolled");
     } catch (error) {
       console.error("Error during registration:", error);
@@ -107,9 +82,9 @@ export function StudentSignOn() {
               </div>
             </div>
 
-            {semesterSubjects && (
+            {availableBlocks && (
               <SubjectsBlockAccordion
-                semesterSubjects={semesterSubjects}
+                semesterSubjects={availableBlocks}
                 setSelectedBlock={setSelectedBlock}
               />
             )}
@@ -144,7 +119,7 @@ export function StudentSignOn() {
                   <div className="mt-2 text-sm text-yellow-700">
                     <p>
                       No cumples con los requisitos para avanzar al siguiente
-                      semestre.
+                      semestre. Debes aprobar todas las materias del semestre actual.
                     </p>
                   </div>
                 </div>
@@ -155,7 +130,6 @@ export function StudentSignOn() {
               <Button
                 className="w-full sm:w-auto"
                 onClick={() => {
-                  // In a real app, this would navigate to the recovery section
                   window.location.href = "/students/recoverySubject";
                 }}
               >
@@ -189,10 +163,7 @@ export function StudentSignOn() {
                 <div className="mt-2 text-sm text-blue-700">
                   <p>
                     Las inscripciones de semestre no están disponibles en este
-                    momento.
-                  </p>
-                  <p className="mt-1">
-                    Por favor, verifica las fechas del período de inscripción.
+                    momento o no tienes historial académico para avanzar.
                   </p>
                 </div>
               </div>

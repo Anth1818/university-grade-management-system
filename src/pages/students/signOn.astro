@@ -1,9 +1,102 @@
 ---
 import LayoutSideBar from "../../layouts/LayoutSideBar.astro";
 import { StudentSignOn } from "@/components/students/signOn/SignOn";
+import { db } from "@/lib/db";
+import { enrollments, sections, subjects, grades, users } from "@/lib/db/schema";
+import { eq, and, lt, desc } from "drizzle-orm";
 
+const user = Astro.locals.user;
+
+if (!user || user.role !== 'student') {
+  return Astro.redirect("/auth");
+}
+
+// 1. Get latest semester the student has enrolled in
+const latestEnrollments = await db
+  .select({
+    semester: sections.semester,
+    status: enrollments.status,
+    finalGrade: grades.finalGrade,
+  })
+  .from(enrollments)
+  .where(and(eq(enrollments.studentId, user.id), eq(enrollments.recovery, false)))
+  .innerJoin(sections, eq(enrollments.sectionId, sections.id))
+  .leftJoin(grades, eq(grades.enrollmentId, enrollments.id))
+  .orderBy(desc(sections.semester));
+
+let status = 'not-available';
+let nextSemester = 1;
+
+if (latestEnrollments.length > 0) {
+  const currentSemester = latestEnrollments[0].semester;
+  const currentSemesterItems = latestEnrollments.filter(e => e.semester === currentSemester);
+  
+  // If already enrolled in a future semester compared to the last completed one
+  // or if currently 'enrolled' in the highest semester
+  if (currentSemesterItems.some(e => e.status === 'enrolled')) {
+     status = 'already-enrolled';
+  } else {
+    // All items in latest semester are 'completed'
+    const hasFailed = currentSemesterItems.some(e => e.finalGrade < 10);
+    if (hasFailed) {
+      status = 'not-eligible';
+    } else {
+      status = 'eligible';
+      nextSemester = currentSemester + 1;
+    }
+  }
+} else {
+  // New student?
+  status = 'eligible';
+  nextSemester = 1;
+}
+
+// 2. Fetch available blocks for the next semester
+const availableSections = await db
+  .select({
+    id: sections.id,
+    name: subjects.name,
+    code: subjects.code,
+    credits: subjects.credits,
+    teacher: users.name,
+    day: sections.day,
+    time: sections.time,
+    classroom: sections.classroom,
+    block: sections.block,
+  })
+  .from(sections)
+  .where(eq(sections.semester, nextSemester))
+  .innerJoin(subjects, eq(sections.subjectId, subjects.id))
+  .innerJoin(users, eq(sections.teacherId, users.id));
+
+const blocks = [];
+const blockNames = [...new Set(availableSections.map(s => s.block))];
+
+for (const blockName of blockNames) {
+  const blockSections = availableSections.filter(s => s.block === blockName);
+  blocks.push({
+    semester: `Semestre ${nextSemester}`,
+    block: blockName,
+    turn: "Mañana/Tarde",
+    subjects: blockSections.map(s => ({
+      id: s.id,
+      name: s.name,
+      code: s.code,
+      credits: s.credits,
+      teacherAssing: { id: "1", name: s.teacher },
+      day: s.day,
+      time: s.time,
+      classroom: s.classroom,
+    }))
+  });
+}
 ---
 
 <LayoutSideBar>
-  <StudentSignOn client:load />
+  <StudentSignOn 
+    initialStatus={status as any} 
+    availableBlocks={blocks} 
+    studentId={user.id} 
+    client:load 
+  />
 </LayoutSideBar>

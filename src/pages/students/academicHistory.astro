@@ -1,9 +1,85 @@
 ---
 import LayoutSideBar from "../../layouts/LayoutSideBar.astro";
-import AcademicHistory from "../../components/students/academicHistory/AcademicHistory.tsx";
+import AcademicHistoryComponent from "../../components/students/academicHistory/AcademicHistory.tsx";
+import { db } from "@/lib/db";
+import { grades, enrollments, sections, subjects } from "@/lib/db/schema";
+import { eq, and } from "drizzle-orm";
 
+const user = Astro.locals.user;
+
+if (!user || user.role !== 'student') {
+  return Astro.redirect("/auth");
+}
+
+// Fetch all non-recovery enrollments and their grades
+const historyData = await db
+  .select({
+    subjectName: subjects.name,
+    credits: subjects.credits,
+    career: subjects.career,
+    semester: sections.semester,
+    status: enrollments.status,
+    evaluation1: grades.evaluation1,
+    evaluation2: grades.evaluation2,
+    evaluation3: grades.evaluation3,
+    evaluation4: grades.evaluation4,
+    evaluation5: grades.evaluation5,
+    evaluation6: grades.evaluation6,
+    finalGrade: grades.finalGrade,
+  })
+  .from(enrollments)
+  .where(and(eq(enrollments.studentId, user.id), eq(enrollments.recovery, false)))
+  .innerJoin(sections, eq(enrollments.sectionId, sections.id))
+  .innerJoin(subjects, eq(sections.subjectId, subjects.id))
+  .leftJoin(grades, eq(grades.enrollmentId, enrollments.id));
+
+// Group by career (degree) and then by semester
+const formattedHistory = [];
+const careers = [...new Set(historyData.map(item => item.career))];
+
+for (const career of careers) {
+  const careerHistory = {
+    degree: career,
+    semesters: []
+  };
+
+  const careerItems = historyData.filter(item => item.career === career);
+  const semesters = [...new Set(careerItems.map(item => item.semester))].sort((a, b) => a - b);
+
+  for (const semesterNum of semesters) {
+    const semesterItems = careerItems.filter(item => item.semester === semesterNum);
+    
+    const gradesList = semesterItems.map(item => ({
+      subject: item.subjectName,
+      evaluation1: item.evaluation1,
+      evaluation2: item.evaluation2,
+      evaluation3: item.evaluation3,
+      evaluation4: item.evaluation4,
+      evaluation5: item.evaluation5,
+      evaluation6: item.evaluation6,
+      finalGrade: item.finalGrade,
+    }));
+
+    const creditsTotal = semesterItems.reduce((acc, item) => acc + item.credits, 0);
+    const creditsEarned = semesterItems.reduce((acc, item) => acc + (item.finalGrade >= 10 ? item.credits : 0), 0);
+    const validGrades = semesterItems.filter(item => item.finalGrade > 0);
+    const gpa = validGrades.length > 0 
+      ? validGrades.reduce((acc, item) => acc + item.finalGrade, 0) / validGrades.length 
+      : 0;
+
+    careerHistory.semesters.push({
+      semester: semesterNum,
+      status: semesterItems.every(item => item.status === 'completed') ? 'completed' : 'enrolled',
+      creditsTotal,
+      creditsEarned,
+      gpa,
+      grades: gradesList
+    });
+  }
+  formattedHistory.push(careerHistory);
+}
 ---
 
 <LayoutSideBar>
-  <AcademicHistory client:load/>
+  <AcademicHistoryComponent history={formattedHistory} client:load/>
 </LayoutSideBar>

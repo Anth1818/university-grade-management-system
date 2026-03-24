@@ -1,15 +1,30 @@
 ---
 import CardId from "@/components/shared/CardId.astro";
 
+interface Props {
+  user: {
+    name: string;
+    id: string;
+    role: string;
+  };
+  career?: string;
+}
+
+const { user, career = "Ingeniería en Computación" } = Astro.props;
+
+// Split name into first and last for the CardId component (simple split for demo)
+const nameParts = user.name.split(" ");
+const firstName = nameParts[0];
+const lastName = nameParts.slice(1).join(" ") || "";
 ---
   
     <div class="flex flex-col justify-center items-center h-full">
       <h2 class="text-xl font-semibold mb-4">Carnet estudiantil</h2>
       <CardId
-        name="Anthony"
-        lastName="Ruiz"
-        id="12345678"
-        program="Ingeniería en Informática"
+        name={firstName}
+        lastName={lastName}
+        id={user.id.substring(0, 8)}
+        program={career}
         campus="Principal"
         universityName="UNIVERSIDAD AUTÓNOMA RUIZ"
         role="Estudiante"

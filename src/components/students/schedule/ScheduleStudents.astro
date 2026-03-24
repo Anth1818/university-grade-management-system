@@ -19,25 +19,17 @@ import { recoverySubjectsData } from "@/data/recoverySubjectsData";
 import type { Subject } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-const selectedBlock = "A";
+interface Props {
+  className?: string;
+  studentNeedRecovery: boolean;
+  schedule: any[];
+  semesterName?: string;
+}
 
-const studentNeedRecovery = Astro.props.studentNeedRecovery;
-// Filtrar por defecto el Bloque A para el horario semestral
-const semesterSchedule = studentNeedRecovery
-  ? null
-  : semesterSubjectsData.find((block) => block.block === selectedBlock)
-      ?.subjects || [];
-
-const semesterName =
-  semesterSubjectsData.find((block) => block.block === selectedBlock)
-    ?.semester || "Recuperación";
-
-const recoverySchedule =
-  recoverySubjectsData.find((block) => block.block === selectedBlock)
-    ?.subjects || [];
+const { className, studentNeedRecovery, schedule, semesterName = "Actual" } = Astro.props;
 ---
 
-<Card className={cn("w-full")}>
+<Card className={cn("w-full", className)}>
   <CardHeader className="flex flex-row items-center justify-between pb-2">
     <div>
       <CardTitle>Horario de Clases</CardTitle>
@@ -72,7 +64,7 @@ const recoverySchedule =
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {semesterSchedule?.map((subject: Subject) => (
+                {schedule?.map((subject) => (
                   <TableRow>
                     <TableCell className="font-medium">
                       {subject.name}
@@ -83,6 +75,13 @@ const recoverySchedule =
                     <TableCell>{subject.classroom}</TableCell>
                   </TableRow>
                 ))}
+                {schedule?.length === 0 && (
+                  <TableRow>
+                    <TableCell colspan="5" className="text-center py-4 text-muted-foreground">
+                      No tienes materias inscritas para este período.
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </div>
@@ -104,7 +103,7 @@ const recoverySchedule =
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {recoverySchedule?.map((subject: Subject) => (
+                {schedule?.map((subject) => (
                   <TableRow>
                     <TableCell className="font-medium">
                       {subject.name}
@@ -115,6 +114,13 @@ const recoverySchedule =
                     <TableCell>{subject.classroom}</TableCell>
                   </TableRow>
                 ))}
+                {schedule?.length === 0 && (
+                  <TableRow>
+                    <TableCell colspan="5" className="text-center py-4 text-amber-700 font-medium">
+                      No tienes materias inscritas en recuperación.
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </div>

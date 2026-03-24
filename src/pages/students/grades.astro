@@ -3,11 +3,41 @@ import LayoutSideBar from "@/layouts/LayoutSideBar.astro";
 import StudentTableGrades from "@/components/students/grades/TableGrades.astro";
 import { DownloadGradesButton } from "@/components/students/grades/DownloadGradesButton";
 import { ButtonNavigate } from "@/components/shared/ButtonNavigate";
+import { db } from "@/lib/db";
+import { grades, enrollments, sections, subjects } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
+
+const user = Astro.locals.user;
+
+if (!user || user.role !== 'student') {
+  return Astro.redirect("/auth");
+}
+
+const studentGrades = await db
+  .select({
+    id: grades.id,
+    subjectName: subjects.name,
+    evaluation1: grades.evaluation1,
+    evaluation2: grades.evaluation2,
+    evaluation3: grades.evaluation3,
+    evaluation4: grades.evaluation4,
+    evaluation5: grades.evaluation5,
+    evaluation6: grades.evaluation6,
+    evaluation7: grades.evaluation7,
+    evaluation8: grades.evaluation8,
+    finalGrade: grades.finalGrade,
+  })
+  .from(grades)
+  .where(eq(grades.studentId, user.id))
+  .innerJoin(enrollments, eq(grades.enrollmentId, enrollments.id))
+  .innerJoin(sections, eq(enrollments.sectionId, sections.id))
+  .innerJoin(subjects, eq(sections.subjectId, subjects.id));
+
 ---
 
 <LayoutSideBar>
   <div class="container mx-auto p-4">
-    <StudentTableGrades>
+    <StudentTableGrades grades={studentGrades}>
       <DownloadGradesButton slot="download-button" client:load />
       <div slot="recovery-button" class="flex justify-center">
         <ButtonNavigate url="/students/recoverySubject" className="mt-2" client:load>

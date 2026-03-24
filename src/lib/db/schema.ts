@@ -28,6 +28,7 @@ export const sections = sqliteTable('sections', {
   classroom: text('classroom').notNull(),
   day: text('day').notNull(),
   time: text('time').notNull(),
+  block: text('block'), // e.g., 'A', 'B'
 });
 
 export const sectionsRelations = relations(sections, ({ one }) => ({
@@ -46,12 +47,26 @@ export const enrollments = sqliteTable('enrollments', {
   studentId: text('student_id').notNull().references(() => users.id),
   sectionId: text('section_id').notNull().references(() => sections.id),
   status: text('status', { enum: ['enrolled', 'completed', 'dropped'] }).notNull().default('enrolled'),
+  recovery: integer('recovery', { mode: 'boolean' }).default(false),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 });
+
+export const enrollmentsRelations = relations(enrollments, ({ one, many }) => ({
+  student: one(users, {
+    fields: [enrollments.studentId],
+    references: [users.id],
+  }),
+  section: one(sections, {
+    fields: [enrollments.sectionId],
+    references: [sections.id],
+  }),
+  grades: many(grades),
+}));
 
 export const grades = sqliteTable('grades', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
   enrollmentId: text('enrollment_id').notNull().references(() => enrollments.id),
+  studentId: text('student_id').notNull().references(() => users.id),
   evaluation1: real('evaluation1').default(0),
   evaluation2: real('evaluation2').default(0),
   evaluation3: real('evaluation3').default(0),
@@ -62,6 +77,17 @@ export const grades = sqliteTable('grades', {
   evaluation8: real('evaluation8').default(0),
   finalGrade: real('final_grade').default(0),
 });
+
+export const gradesRelations = relations(grades, ({ one }) => ({
+  enrollment: one(enrollments, {
+    fields: [grades.enrollmentId],
+    references: [enrollments.id],
+  }),
+  student: one(users, {
+    fields: [grades.studentId],
+    references: [users.id],
+  }),
+}));
 
 export const requests = sqliteTable('requests', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
