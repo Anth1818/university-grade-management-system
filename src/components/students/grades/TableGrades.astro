@@ -1,4 +1,5 @@
 ---
+import type { Grade } from "@/lib/types";
 import {
   Card,
   CardContent,
@@ -18,7 +19,7 @@ import { cn } from "@/lib/utils";
 
 interface Props {
   className?: string;
-  grades: any[];
+  grades: Grade[];
 }
 
 const { className, grades } = Astro.props;
@@ -28,7 +29,7 @@ const { className, grades } = Astro.props;
   <CardHeader className="flex flex-row items-center justify-between pb-2">
     <div class="space-y-1">
       <CardTitle>Calificaciones</CardTitle>
-      <CardDescription>Semestre actual</CardDescription>
+      <CardDescription>Semestre actual ({grades[0]?.semester}) - {grades[0]?.career}</CardDescription>
     </div>
     <div class="flex items-center">
       <slot name="download-button" />
@@ -64,7 +65,7 @@ const { className, grades } = Astro.props;
               <TableCell className="text-center">{grade.evaluation7}</TableCell>
               <TableCell className="text-center">{grade.evaluation8}</TableCell>
               <TableCell
-                className={`text-right font-semibold ${grade.finalGrade < 10 ? "text-red-500" : ""}`}
+                className={`text-right font-semibold ${grade.finalGrade !== undefined && grade.finalGrade < 10 ? "text-red-500" : ""}`}
               >
                 {grade.finalGrade}
               </TableCell>
@@ -78,7 +79,7 @@ const { className, grades } = Astro.props;
 
 
   <div class="flex justify-center flex-col">
-    {grades.some((grade) => grade.finalGrade < 10 && grade.finalGrade !== 0) && (
+    {grades.some((grade) => grade.finalGrade !== undefined &&  grade.finalGrade < 10 && grade.finalGrade !== 0) && (
     
     <h2 class="text-red-500 font-bold text-lg mb-2 text-center">
       Atención: Al no tener todas las asignaturas aprobadas, no se puede

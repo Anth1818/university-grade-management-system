@@ -4,6 +4,7 @@ import StudentTableGrades from "@/components/students/grades/TableGrades.astro";
 import { DownloadGradesButton } from "@/components/students/grades/DownloadGradesButton";
 import { ButtonNavigate } from "@/components/shared/ButtonNavigate";
 import { db } from "@/lib/db";
+import type { Grade } from "@/lib/types";
 import { grades, enrollments, sections, subjects } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
@@ -13,10 +14,15 @@ if (!user || user.role !== 'student') {
   return Astro.redirect("/auth");
 }
 
-const studentGrades = await db
+const subjectsList = await db.select().from(subjects);
+const subjectNameByCode = new Map(subjectsList.map((subject) => [subject.code, subject.name]));
+
+const studentGradesRaw = await db
   .select({
     id: grades.id,
-    subjectName: subjects.name,
+    subjectCode: grades.subjectCode,
+    career: grades.career,
+    semester: grades.semester,
     evaluation1: grades.evaluation1,
     evaluation2: grades.evaluation2,
     evaluation3: grades.evaluation3,
@@ -32,6 +38,23 @@ const studentGrades = await db
   .innerJoin(enrollments, eq(grades.enrollmentId, enrollments.id))
   .innerJoin(sections, eq(enrollments.sectionId, sections.id))
   .innerJoin(subjects, eq(sections.subjectId, subjects.id));
+
+const studentGrades: Grade[] = studentGradesRaw.map((grade) => ({
+  id: grade.id,
+  subjectCode: grade.subjectCode ?? undefined,
+  subjectName: subjectNameByCode.get(grade.subjectCode ?? '') ?? grade.subjectCode ?? 'Sin asignatura',
+  career: grade.career,
+  semester: Number.parseInt(String(grade.semester).match(/\d+/)?.[0] ?? '0', 10),
+  evaluation1: Number(grade.evaluation1 ?? 0),
+  evaluation2: Number(grade.evaluation2 ?? 0),
+  evaluation3: Number(grade.evaluation3 ?? 0),
+  evaluation4: Number(grade.evaluation4 ?? 0),
+  evaluation5: Number(grade.evaluation5 ?? 0),
+  evaluation6: Number(grade.evaluation6 ?? 0),
+  evaluation7: Number(grade.evaluation7 ?? 0),
+  evaluation8: Number(grade.evaluation8 ?? 0),
+  finalGrade: Number(grade.finalGrade ?? 0),
+}));
 
 ---
 

@@ -57,7 +57,7 @@ const recoverySections = await db
     block: sections.block,
   })
   .from(sections)
-  .where(eq(sections.semester, 0))
+  .where(eq(sections.semesterLabel, "0"))
   .innerJoin(subjects, eq(sections.subjectId, subjects.id))
   .innerJoin(users, eq(sections.teacherId, users.id));
 

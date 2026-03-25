@@ -15,6 +15,7 @@ export type Subject = {
     credits: number;
     teacherAssing: TeacherIdAndName | null; 
     teachers?: TeacherNameAndEmail[];
+    teacher: string;
     teacherOptions?: TeacherIdAndName[];
     day: string;
     classroom: string;
@@ -31,7 +32,11 @@ export type SemesterData = {
 
 export type Grade = {
     id: string
-    subject: string
+    subject?: string
+    career?: string
+    semester?: number | string
+    subjectName?: string
+    subjectCode?: string
     evaluation1: number
     evaluation2: number
     evaluation3: number
@@ -40,7 +45,7 @@ export type Grade = {
     evaluation6: number
     evaluation7: number
     evaluation8: number
-    finalGrade: number
+    finalGrade?: number
   }
 
 export type SemesterSubjects = SemesterData[];

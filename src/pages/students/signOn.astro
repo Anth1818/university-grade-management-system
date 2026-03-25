@@ -14,7 +14,7 @@ if (!user || user.role !== 'student') {
 // 1. Get latest semester the student has enrolled in
 const latestEnrollments = await db
   .select({
-    semester: sections.semester,
+    semester: sections.semesterLabel,
     status: enrollments.status,
     finalGrade: grades.finalGrade,
   })
@@ -22,10 +22,10 @@ const latestEnrollments = await db
   .where(and(eq(enrollments.studentId, user.id), eq(enrollments.recovery, false)))
   .innerJoin(sections, eq(enrollments.sectionId, sections.id))
   .leftJoin(grades, eq(grades.enrollmentId, enrollments.id))
-  .orderBy(desc(sections.semester));
+  .orderBy(desc(sections.semesterLabel));
 
 let status = 'not-available';
-let nextSemester = 1;
+let nextSemester: number | string = 1;
 
 if (latestEnrollments.length > 0) {
   const currentSemester = latestEnrollments[0].semester;
@@ -37,7 +37,7 @@ if (latestEnrollments.length > 0) {
      status = 'already-enrolled';
   } else {
     // All items in latest semester are 'completed'
-    const hasFailed = currentSemesterItems.some(e => e.finalGrade < 10);
+    const hasFailed = currentSemesterItems.some(e => e.finalGrade !== null && e.finalGrade < 10);
     if (hasFailed) {
       status = 'not-eligible';
     } else {
@@ -65,7 +65,7 @@ const availableSections = await db
     block: sections.block,
   })
   .from(sections)
-  .where(eq(sections.semester, nextSemester))
+  .where(eq(sections.semesterLabel, String(nextSemester)))
   .innerJoin(subjects, eq(sections.subjectId, subjects.id))
   .innerJoin(users, eq(sections.teacherId, users.id));
 
