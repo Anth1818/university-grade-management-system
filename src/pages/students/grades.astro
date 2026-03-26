@@ -5,8 +5,17 @@ import { DownloadGradesButton } from "@/components/students/grades/DownloadGrade
 import { ButtonNavigate } from "@/components/shared/ButtonNavigate";
 import { db } from "@/lib/db";
 import type { Grade } from "@/lib/types";
-import { grades, enrollments, sections, subjects } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import {
+  careerSemesters,
+  careers,
+  grades,
+  enrollments,
+  sections,
+  studentPrograms,
+  studentSemesterHistory,
+  subjects,
+} from "@/lib/db/schema";
+import { and, desc, eq, inArray } from "drizzle-orm";
 
 const user = Astro.locals.user;
 
@@ -14,59 +23,238 @@ if (!user || user.role !== 'student') {
   return Astro.redirect("/auth");
 }
 
-const subjectsList = await db.select().from(subjects);
-const subjectNameByCode = new Map(subjectsList.map((subject) => [subject.code, subject.name]));
-
-const studentGradesRaw = await db
+const currentProgramRows = await db
   .select({
-    id: grades.id,
-    subjectCode: grades.subjectCode,
-    career: grades.career,
-    semester: grades.semester,
-    evaluation1: grades.evaluation1,
-    evaluation2: grades.evaluation2,
-    evaluation3: grades.evaluation3,
-    evaluation4: grades.evaluation4,
-    evaluation5: grades.evaluation5,
-    evaluation6: grades.evaluation6,
-    evaluation7: grades.evaluation7,
-    evaluation8: grades.evaluation8,
-    finalGrade: grades.finalGrade,
+    id: studentPrograms.id,
+    careerId: studentPrograms.careerId,
   })
-  .from(grades)
-  .where(eq(grades.studentId, user.id))
-  .innerJoin(enrollments, eq(grades.enrollmentId, enrollments.id))
-  .innerJoin(sections, eq(enrollments.sectionId, sections.id))
-  .innerJoin(subjects, eq(sections.subjectId, subjects.id));
+  .from(studentPrograms)
+  .where(
+    and(
+      eq(studentPrograms.studentId, user.id),
+      eq(studentPrograms.status, 'active')
+    )
+  )
+  .orderBy(desc(studentPrograms.updatedAt))
+  .limit(1);
 
-const studentGrades: Grade[] = studentGradesRaw.map((grade) => ({
-  id: grade.id,
-  subjectCode: grade.subjectCode ?? undefined,
-  subjectName: subjectNameByCode.get(grade.subjectCode ?? '') ?? grade.subjectCode ?? 'Sin asignatura',
-  career: grade.career,
-  semester: Number.parseInt(String(grade.semester).match(/\d+/)?.[0] ?? '0', 10),
-  evaluation1: Number(grade.evaluation1 ?? 0),
-  evaluation2: Number(grade.evaluation2 ?? 0),
-  evaluation3: Number(grade.evaluation3 ?? 0),
-  evaluation4: Number(grade.evaluation4 ?? 0),
-  evaluation5: Number(grade.evaluation5 ?? 0),
-  evaluation6: Number(grade.evaluation6 ?? 0),
-  evaluation7: Number(grade.evaluation7 ?? 0),
-  evaluation8: Number(grade.evaluation8 ?? 0),
-  finalGrade: Number(grade.finalGrade ?? 0),
-}));
+const currentProgram = currentProgramRows[0];
+
+const enrolledSemesterRows = await db
+  .select({
+    careerId: sections.careerId,
+    semesterOrder: sections.semesterOrder,
+    semesterLabel: sections.semesterLabel,
+    enrollmentStatus: enrollments.status,
+    turn: sections.turn,
+    career: careers.name,
+    trayect: careerSemesters.trayect,
+  })
+  .from(enrollments)
+  .innerJoin(sections, eq(enrollments.sectionId, sections.id))
+  .innerJoin(careers, eq(sections.careerId, careers.id))
+  .leftJoin(
+    careerSemesters,
+    and(
+      eq(careerSemesters.careerId, sections.careerId),
+      eq(careerSemesters.semesterOrder, sections.semesterOrder)
+    )
+  )
+  .where(
+    and(
+      eq(enrollments.studentId, user.id),
+      eq(enrollments.recovery, false),
+      currentProgram ? eq(sections.careerId, currentProgram.careerId) : undefined,
+      inArray(enrollments.status, ['enrolled', 'completed'])
+    )
+  )
+  .orderBy(desc(sections.semesterOrder), desc(enrollments.createdAt))
+  .limit(1);
+
+const enrolledSemester = enrolledSemesterRows[0];
+
+const inProgressSemesterRows = await db
+  .select({
+    careerId: studentPrograms.careerId,
+    semesterOrder: studentSemesterHistory.semesterOrder,
+    semesterLabel: studentSemesterHistory.semesterLabel,
+    turn: studentSemesterHistory.turn,
+    career: careers.name,
+    trayect: careerSemesters.trayect,
+    status: studentSemesterHistory.status,
+  })
+  .from(studentPrograms)
+  .innerJoin(careers, eq(studentPrograms.careerId, careers.id))
+  .innerJoin(
+    studentSemesterHistory,
+    eq(studentSemesterHistory.studentProgramId, studentPrograms.id)
+  )
+  .leftJoin(
+    careerSemesters,
+    and(
+      eq(careerSemesters.careerId, studentPrograms.careerId),
+      eq(careerSemesters.semesterOrder, studentSemesterHistory.semesterOrder)
+    )
+  )
+  .where(
+    and(
+      eq(studentPrograms.studentId, user.id),
+      eq(studentPrograms.status, 'active'),
+      currentProgram ? eq(studentPrograms.id, currentProgram.id) : undefined,
+      inArray(studentSemesterHistory.status, ['in-progress', 'pending'])
+    )
+  )
+  .orderBy(desc(studentSemesterHistory.semesterOrder), desc(studentSemesterHistory.createdAt))
+  .limit(1);
+
+const inProgressSemester = inProgressSemesterRows[0];
+
+const activeSemester = enrolledSemester ?? inProgressSemester;
+const hasActiveSemester = Boolean(activeSemester);
+const activeSemesterSource = enrolledSemester ? 'enrolled' : inProgressSemester ? 'in-progress' : null;
+
+const enrolledSubjectsWithGrades = activeSemesterSource === 'enrolled'
+  ? await db
+      .select({
+        enrollmentId: enrollments.id,
+        subjectCode: subjects.code,
+        subjectName: subjects.name,
+        semesterOrder: sections.semesterOrder,
+        career: careers.name,
+        evaluation1: grades.evaluation1,
+        evaluation2: grades.evaluation2,
+        evaluation3: grades.evaluation3,
+        evaluation4: grades.evaluation4,
+        evaluation5: grades.evaluation5,
+        evaluation6: grades.evaluation6,
+        evaluation7: grades.evaluation7,
+        evaluation8: grades.evaluation8,
+        finalGrade: grades.finalGrade,
+      })
+      .from(enrollments)
+      .innerJoin(sections, eq(enrollments.sectionId, sections.id))
+      .innerJoin(subjects, eq(sections.subjectId, subjects.id))
+      .innerJoin(careers, eq(sections.careerId, careers.id))
+      .leftJoin(grades, eq(grades.enrollmentId, enrollments.id))
+      .where(
+        and(
+          eq(enrollments.studentId, user.id),
+          eq(enrollments.recovery, false),
+          inArray(enrollments.status, ['enrolled', 'completed']),
+          currentProgram ? eq(sections.careerId, currentProgram.careerId) : undefined,
+          eq(sections.semesterOrder, activeSemester!.semesterOrder ?? 0),
+          eq(sections.careerId, activeSemester!.careerId)
+        )
+      )
+      .orderBy(subjects.name)
+  : [];
+
+const plannedSubjectsRows = activeSemesterSource === 'in-progress'
+  ? await db
+      .select({
+        sectionId: sections.id,
+        subjectCode: subjects.code,
+        subjectName: subjects.name,
+        semesterOrder: sections.semesterOrder,
+        career: careers.name,
+      })
+      .from(sections)
+      .innerJoin(subjects, eq(sections.subjectId, subjects.id))
+      .innerJoin(careers, eq(sections.careerId, careers.id))
+      .where(
+        and(
+          eq(sections.careerId, activeSemester!.careerId),
+          eq(sections.semesterOrder, activeSemester!.semesterOrder ?? 0),
+          eq(sections.turn, activeSemester!.turn),
+          eq(sections.isRecovery, false)
+        )
+      )
+      .orderBy(subjects.name)
+  : [];
+
+const uniquePlannedSubjects = Array.from(
+  new Map(
+    plannedSubjectsRows.map((item) => [item.subjectCode ?? item.sectionId, item])
+  ).values()
+);
+
+const studentGrades: Grade[] =
+  activeSemesterSource === 'enrolled'
+    ? enrolledSubjectsWithGrades.map((row) => ({
+        id: row.enrollmentId,
+        subjectCode: row.subjectCode ?? undefined,
+        subjectName: row.subjectName,
+        career: row.career,
+        semester: row.semesterOrder ?? 0,
+        evaluation1: Number(row.evaluation1 ?? 0),
+        evaluation2: Number(row.evaluation2 ?? 0),
+        evaluation3: Number(row.evaluation3 ?? 0),
+        evaluation4: Number(row.evaluation4 ?? 0),
+        evaluation5: Number(row.evaluation5 ?? 0),
+        evaluation6: Number(row.evaluation6 ?? 0),
+        evaluation7: Number(row.evaluation7 ?? 0),
+        evaluation8: Number(row.evaluation8 ?? 0),
+        finalGrade: Number(row.finalGrade ?? 0),
+      }))
+    : uniquePlannedSubjects.map((row) => ({
+        id: row.sectionId,
+        subjectCode: row.subjectCode ?? undefined,
+        subjectName: row.subjectName,
+        career: row.career,
+        semester: row.semesterOrder ?? 0,
+        evaluation1: 0,
+        evaluation2: 0,
+        evaluation3: 0,
+        evaluation4: 0,
+        evaluation5: 0,
+        evaluation6: 0,
+        evaluation7: 0,
+        evaluation8: 0,
+        finalGrade: 0,
+      }));
 
 ---
 
 <LayoutSideBar>
   <div class="container mx-auto p-4">
-    <StudentTableGrades grades={studentGrades}>
-      <DownloadGradesButton slot="download-button" client:load />
-      <div slot="recovery-button" class="flex justify-center">
-        <ButtonNavigate url="/students/recoverySubject" className="mt-2" client:load>
-          Ver recuperación
-        </ButtonNavigate>
+    {!hasActiveSemester ? (
+      <div class="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
+        <h2 class="text-xl font-semibold mb-2">Calificaciones</h2>
+        <p class="text-sm text-muted-foreground">
+          Aun no tienes un semestre inscrito o en progreso. Cuando inicies tu periodo academico,
+          aqui se mostraran las materias y las notas cargadas.
+        </p>
       </div>
-    </StudentTableGrades>
+    ) : (
+      <div class="space-y-4">
+        <div class="flex flex-wrap gap-2">
+          <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium">
+            {activeSemesterSource === 'enrolled'
+              ? activeSemester?.enrollmentStatus === 'completed'
+                ? 'Semestre con notas'
+                : 'Semestre inscrito'
+              : 'Semestre en progreso'}: {activeSemester?.semesterLabel ?? `Semestre ${activeSemester?.semesterOrder ?? '-'}`}
+          </span>
+          <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium">
+            Trayecto: {activeSemester?.trayect ?? '-'}
+          </span>
+          <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium">
+            Turno: {activeSemester?.turn ?? '-'}
+          </span>
+          <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium">
+            Carrera: {activeSemester?.career ?? 'Sin carrera asignada'}
+          </span>
+        </div>
+
+        <StudentTableGrades grades={studentGrades}>
+          <DownloadGradesButton slot="download-button" client:load />
+          <div slot="recovery-button" class="flex justify-center">
+            <ButtonNavigate url="/students/recoverySubject" className="mt-2" client:load>
+              Ver recuperación
+            </ButtonNavigate>
+          </div>
+        </StudentTableGrades>
+      </div>
+    )}
   </div>
 </LayoutSideBar>

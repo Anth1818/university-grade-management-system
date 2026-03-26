@@ -14,11 +14,40 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { academicHistoryData } from "@/data/academicHistoryData";
+
+type GradeItem = {
+  id: string;
+  subject: string;
+  evaluation1: number;
+  evaluation2: number;
+  evaluation3: number;
+  evaluation4: number;
+  evaluation5: number;
+  evaluation6: number;
+  evaluation7: number;
+  evaluation8: number;
+  finalGrade: number;
+};
+
+type SemesterItem = {
+  semester: string;
+  trayect: number | null;
+  turn: string | null;
+  status: string;
+  creditsEarned: number;
+  creditsTotal: number;
+  gpa: number;
+  grades: GradeItem[];
+};
+
+type DegreeItem = {
+  degree: string;
+  semesters: SemesterItem[];
+};
 
 interface AcademicHistoryProps {
   className?: string;
-  history: any[];
+  history: DegreeItem[];
 }
 
 export default function AcademicHistory({ className, history }: AcademicHistoryProps) {
@@ -35,10 +64,17 @@ export default function AcademicHistory({ className, history }: AcademicHistoryP
   const [selectedDegree, setSelectedDegree] = useState(history[0].degree);
   
   // Get unique degrees for the select dropdown
-  const degrees = Array.from(new Set(history.map(h => h.degree)));
+  const degrees = Array.from(new Set(history.map((h) => h.degree)));
   
   // Get the selected degree data
-  const selectedDegreeData = history.find(h => h.degree === selectedDegree) || history[0];
+  const selectedDegreeData = history.find((h) => h.degree === selectedDegree) || history[0];
+
+  const getStatusLabel = (status: string) => {
+    if (status === 'completed') return 'Completado';
+    if (status === 'in-progress') return 'En progreso';
+    if (status === 'pending') return 'Pendiente';
+    return status;
+  };
 
   return (
     <Card className={cn("w-full", className)}>
@@ -67,14 +103,16 @@ export default function AcademicHistory({ className, history }: AcademicHistoryP
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          {selectedDegreeData.semesters.map((semester: any) => (
+          {selectedDegreeData.semesters.map((semester) => (
             <div key={semester.semester} className="border rounded-lg overflow-hidden">
               <div className="bg-gray-50 dark:bg-gray-800 px-6 py-3 flex justify-between items-center">
                 <div>
-                  <h3 className="font-medium">Semestre {semester.semester}</h3>
+                  <h3 className="font-medium">{semester.semester}</h3>
                   <p className="text-sm text-muted-foreground">
-                    {semester.status === 'completed' ? 'Completado' : 
-                     semester.status === 'enrolled' ? 'En progreso' : 'Pendiente'}
+                    {getStatusLabel(semester.status)}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {semester.trayect ? `Trayecto ${semester.trayect}` : 'Trayecto no definido'} | {semester.turn ?? 'turno no definido'}
                   </p>
                 </div>
                 <div className="flex gap-4">
@@ -105,11 +143,13 @@ export default function AcademicHistory({ className, history }: AcademicHistoryP
                         <th className="px-2 py-2 text-center">Eval 4</th>
                         <th className="px-2 py-2 text-center">Eval 5</th>
                         <th className="px-2 py-2 text-center">Eval 6</th>
+                        <th className="px-2 py-2 text-center">Eval 7</th>
+                        <th className="px-2 py-2 text-center">Eval 8</th>
                         <th className="px-4 py-2 text-right">Final</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
-                      {semester.grades.map((grade: any) => (
+                      {semester.grades.map((grade) => (
                         <tr key={grade.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                           <td className="px-6 py-2">{grade.subject}</td>
                           <td className="text-center">{grade.evaluation1 || '-'}</td>
@@ -118,6 +158,8 @@ export default function AcademicHistory({ className, history }: AcademicHistoryP
                           <td className="text-center">{grade.evaluation4 || '-'}</td>
                           <td className="text-center">{grade.evaluation5 || '-'}</td>
                           <td className="text-center">{grade.evaluation6 || '-'}</td>
+                          <td className="text-center">{grade.evaluation7 || '-'}</td>
+                          <td className="text-center">{grade.evaluation8 || '-'}</td>
                           <td 
                             className={cn(
                               "px-4 py-2 text-right font-medium",

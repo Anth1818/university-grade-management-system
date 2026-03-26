@@ -2,8 +2,18 @@
 import LayoutSideBar from "../../layouts/LayoutSideBar.astro";
 import { StudentSignOn } from "@/components/students/signOn/SignOn";
 import { db } from "@/lib/db";
-import { enrollments, sections, subjects, grades, users } from "@/lib/db/schema";
-import { eq, and, lt, desc } from "drizzle-orm";
+import {
+  careers,
+  careerSemesters,
+  enrollments,
+  sections,
+  subjects,
+  users,
+  studentPrograms,
+  studentSemesterHistory,
+} from "@/lib/db/schema";
+import type { SemesterData } from "@/lib/types";
+import { eq, and, desc } from "drizzle-orm";
 
 const user = Astro.locals.user;
 
@@ -11,47 +21,127 @@ if (!user || user.role !== 'student') {
   return Astro.redirect("/auth");
 }
 
-// 1. Get latest semester the student has enrolled in
-const latestEnrollments = await db
+// 1) Get student's current academic program and semester history
+const programRows = await db
   .select({
-    semester: sections.semesterLabel,
-    status: enrollments.status,
-    finalGrade: grades.finalGrade,
+    id: studentPrograms.id,
+    careerId: studentPrograms.careerId,
+    currentSemesterOrder: studentPrograms.currentSemesterOrder,
+    currentSemesterLabel: studentPrograms.currentSemesterLabel,
+    currentTurn: studentPrograms.currentTurn,
+    status: studentPrograms.status,
   })
-  .from(enrollments)
-  .where(and(eq(enrollments.studentId, user.id), eq(enrollments.recovery, false)))
-  .innerJoin(sections, eq(enrollments.sectionId, sections.id))
-  .leftJoin(grades, eq(grades.enrollmentId, enrollments.id))
-  .orderBy(desc(sections.semesterLabel));
+  .from(studentPrograms)
+  .where(eq(studentPrograms.studentId, user.id));
+
+const studentProgram = programRows[0];
 
 let status = 'not-available';
-let nextSemester: number | string = 1;
+let nextSemester = 1;
+let careerFilterId: string | null = null;
+let nextSemesterMeta: {
+  careerName: string;
+  trayect: number;
+  semesterLabel: string;
+  turn: 'matutino' | 'vespertino' | 'nocturno';
+} | null = null;
 
-if (latestEnrollments.length > 0) {
-  const currentSemester = latestEnrollments[0].semester;
-  const currentSemesterItems = latestEnrollments.filter(e => e.semester === currentSemester);
-  
-  // If already enrolled in a future semester compared to the last completed one
-  // or if currently 'enrolled' in the highest semester
-  if (currentSemesterItems.some(e => e.status === 'enrolled')) {
-     status = 'already-enrolled';
+if (studentProgram) {
+  const currentSemesterOrder = studentProgram.currentSemesterOrder ?? 1;
+  nextSemester = currentSemesterOrder + 1;
+  careerFilterId = studentProgram.careerId;
+
+  if (studentProgram.status !== 'active') {
+    status = 'not-available';
   } else {
-    // All items in latest semester are 'completed'
-    const hasFailed = currentSemesterItems.some(e => e.finalGrade !== null && e.finalGrade < 10);
-    if (hasFailed) {
+    const semesterHistory = await db
+      .select({
+        semesterOrder: studentSemesterHistory.semesterOrder,
+        status: studentSemesterHistory.status,
+      })
+      .from(studentSemesterHistory)
+      .where(eq(studentSemesterHistory.studentProgramId, studentProgram.id))
+      .orderBy(desc(studentSemesterHistory.semesterOrder));
+
+    const currentSemesterRecord = semesterHistory.find(
+      (item) => item.semesterOrder === currentSemesterOrder
+    );
+
+    const hasFailedHistory = semesterHistory.some(
+      (item) =>
+        item.semesterOrder <= currentSemesterOrder &&
+        (item.status === 'failed' || item.status === 'withdrawn')
+    );
+
+    if (hasFailedHistory) {
+      status = 'not-eligible';
+    } else if (currentSemesterRecord && currentSemesterRecord.status !== 'completed') {
       status = 'not-eligible';
     } else {
       status = 'eligible';
-      nextSemester = currentSemester + 1;
     }
   }
 } else {
-  // New student?
-  status = 'eligible';
+  // Student without an academic program cannot enroll yet.
+  status = 'not-available';
   nextSemester = 1;
 }
 
-// 2. Fetch available blocks for the next semester
+if (careerFilterId) {
+  const semesterMetaRows = await db
+    .select({
+      careerName: careers.name,
+      trayect: careerSemesters.trayect,
+      semesterLabel: careerSemesters.semesterLabel,
+      turn: careerSemesters.turn,
+    })
+    .from(careerSemesters)
+    .innerJoin(careers, eq(careerSemesters.careerId, careers.id))
+    .where(
+      and(
+        eq(careerSemesters.careerId, careerFilterId),
+        eq(careerSemesters.semesterOrder, nextSemester)
+      )
+    )
+    .limit(1);
+
+  nextSemesterMeta = semesterMetaRows[0] ?? null;
+}
+
+// 2) Check whether student is already enrolled in target semester
+if (status === 'eligible') {
+  const existingEnrollment = await db
+    .select({ id: enrollments.id })
+    .from(enrollments)
+    .innerJoin(sections, eq(enrollments.sectionId, sections.id))
+    .where(
+      and(
+        eq(enrollments.studentId, user.id),
+        eq(enrollments.recovery, false),
+        eq(enrollments.status, 'enrolled'),
+        eq(sections.semesterOrder, nextSemester)
+      )
+    );
+
+  if (existingEnrollment.length > 0) {
+    status = 'already-enrolled';
+  }
+}
+
+// 3) Fetch available blocks for the next semester using career + semester order
+const sectionFilters = [
+  eq(sections.semesterOrder, nextSemester),
+  eq(sections.isRecovery, false),
+];
+
+if (careerFilterId) {
+  sectionFilters.push(eq(sections.careerId, careerFilterId));
+}
+
+if (nextSemesterMeta?.turn) {
+  sectionFilters.push(eq(sections.turn, nextSemesterMeta.turn));
+}
+
 const availableSections = await db
   .select({
     id: sections.id,
@@ -63,39 +153,57 @@ const availableSections = await db
     time: sections.time,
     classroom: sections.classroom,
     block: sections.block,
+    turn: sections.turn,
   })
   .from(sections)
-  .where(eq(sections.semesterLabel, String(nextSemester)))
+  .where(and(...sectionFilters))
   .innerJoin(subjects, eq(sections.subjectId, subjects.id))
-  .innerJoin(users, eq(sections.teacherId, users.id));
+  .leftJoin(users, eq(sections.teacherId, users.id));
 
-const blocks = [];
+const blocks: SemesterData[] = [];
 const blockNames = [...new Set(availableSections.map(s => s.block))];
 
 for (const blockName of blockNames) {
   const blockSections = availableSections.filter(s => s.block === blockName);
   blocks.push({
-    semester: `Semestre ${nextSemester}`,
-    block: blockName,
-    turn: "Mañana/Tarde",
+    career: nextSemesterMeta?.careerName,
+    trayect: nextSemesterMeta?.trayect,
+    semester: nextSemesterMeta?.semesterLabel ?? `Semestre ${nextSemester}`,
+    block: blockName ?? "Sin bloque",
+    turn: nextSemesterMeta?.turn ?? blockSections[0]?.turn ?? "matutino",
     subjects: blockSections.map(s => ({
       id: s.id,
       name: s.name,
       code: s.code,
       credits: s.credits,
-      teacherAssing: { id: "1", name: s.teacher },
+      teacherAssing: { id: "pending", name: s.teacher ?? "Por asignar" },
       day: s.day,
       time: s.time,
       classroom: s.classroom,
+      teacher: s.teacher ?? "Por asignar",
     }))
   });
 }
+
+if (status === 'eligible' && blocks.length === 0) {
+  status = 'not-available';
+}
+
+console.log('SignOn debug', {
+  userId: user.id,
+  status,
+  nextSemester,
+  careerFilterId,
+  nextSemesterMeta,
+  availableSections: availableSections.length,
+  blocks: blocks.length,
+});
 ---
 
 <LayoutSideBar>
   <StudentSignOn 
     initialStatus={status as any} 
-    availableBlocks={blocks} 
+    availableBlocks={blocks as SemesterData[] | null} 
     studentId={user.id} 
     client:load 
   />

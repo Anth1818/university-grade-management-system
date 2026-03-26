@@ -2,8 +2,14 @@
 import LayoutSideBar from "../../layouts/LayoutSideBar.astro";
 import AcademicHistoryComponent from "../../components/students/academicHistory/AcademicHistory.tsx";
 import { db } from "@/lib/db";
-import { grades, enrollments, sections, subjects } from "@/lib/db/schema";
-import { eq, and } from "drizzle-orm";
+import {
+  academicHistories,
+  academicSemesters,
+  academicSemesterGrades,
+  careerSemesters,
+  careers,
+} from "@/lib/db/schema";
+import { eq, inArray } from "drizzle-orm";
 
 const user = Astro.locals.user;
 
@@ -11,73 +17,136 @@ if (!user || user.role !== 'student') {
   return Astro.redirect("/auth");
 }
 
-// Fetch all non-recovery enrollments and their grades
-const historyData = await db
+const parseSemesterOrder = (value: string | null | undefined) => {
+  if (!value) return 0;
+  const match = value.match(/\d+/);
+  return match ? Number(match[0]) : 0;
+};
+
+// Fetch persisted academic history for the logged student.
+const historyRows = await db
   .select({
-    subjectName: subjects.name,
-    credits: subjects.credits,
-    career: subjects.career,
-    semester: sections.semester,
-    status: enrollments.status,
-    evaluation1: grades.evaluation1,
-    evaluation2: grades.evaluation2,
-    evaluation3: grades.evaluation3,
-    evaluation4: grades.evaluation4,
-    evaluation5: grades.evaluation5,
-    evaluation6: grades.evaluation6,
-    finalGrade: grades.finalGrade,
+    careerId: academicHistories.careerId,
+    degree: careers.name,
+    semesterLabel: academicSemesters.semesterLabel,
+    status: academicSemesters.status,
+    creditsEarned: academicSemesters.creditsEarned,
+    creditsTotal: academicSemesters.creditsTotal,
+    gpa: academicSemesters.gpa,
+    gradeId: academicSemesterGrades.id,
+    subjectName: academicSemesterGrades.subjectName,
+    evaluation1: academicSemesterGrades.evaluation1,
+    evaluation2: academicSemesterGrades.evaluation2,
+    evaluation3: academicSemesterGrades.evaluation3,
+    evaluation4: academicSemesterGrades.evaluation4,
+    evaluation5: academicSemesterGrades.evaluation5,
+    evaluation6: academicSemesterGrades.evaluation6,
+    evaluation7: academicSemesterGrades.evaluation7,
+    evaluation8: academicSemesterGrades.evaluation8,
+    finalGrade: academicSemesterGrades.finalGrade,
   })
-  .from(enrollments)
-  .where(and(eq(enrollments.studentId, user.id), eq(enrollments.recovery, false)))
-  .innerJoin(sections, eq(enrollments.sectionId, sections.id))
-  .innerJoin(subjects, eq(sections.subjectId, subjects.id))
-  .leftJoin(grades, eq(grades.enrollmentId, enrollments.id));
+  .from(academicHistories)
+  .innerJoin(careers, eq(academicHistories.careerId, careers.id))
+  .innerJoin(academicSemesters, eq(academicSemesters.academicHistoryId, academicHistories.id))
+  .leftJoin(academicSemesterGrades, eq(academicSemesterGrades.academicSemesterId, academicSemesters.id))
+  .where(eq(academicHistories.studentId, user.id));
 
-// Group by career (degree) and then by semester
-const formattedHistory = [];
-const careers = [...new Set(historyData.map(item => item.career))];
+const careerIds = [...new Set(historyRows.map((row) => row.careerId))];
 
-for (const career of careers) {
-  const careerHistory = {
-    degree: career,
-    semesters: []
-  };
+const careerSemesterRows = careerIds.length
+  ? await db
+      .select({
+        careerId: careerSemesters.careerId,
+        semesterOrder: careerSemesters.semesterOrder,
+        trayect: careerSemesters.trayect,
+        turn: careerSemesters.turn,
+      })
+      .from(careerSemesters)
+      .where(inArray(careerSemesters.careerId, careerIds))
+  : [];
 
-  const careerItems = historyData.filter(item => item.career === career);
-  const semesters = [...new Set(careerItems.map(item => item.semester))].sort((a, b) => a - b);
+const semesterMetaByCareerAndOrder = new Map<string, { trayect: number; turn: string }>();
 
-  for (const semesterNum of semesters) {
-    const semesterItems = careerItems.filter(item => item.semester === semesterNum);
-    
-    const gradesList = semesterItems.map(item => ({
-      subject: item.subjectName,
-      evaluation1: item.evaluation1,
-      evaluation2: item.evaluation2,
-      evaluation3: item.evaluation3,
-      evaluation4: item.evaluation4,
-      evaluation5: item.evaluation5,
-      evaluation6: item.evaluation6,
-      finalGrade: item.finalGrade,
-    }));
+for (const row of careerSemesterRows) {
+  semesterMetaByCareerAndOrder.set(`${row.careerId}-${row.semesterOrder}`, {
+    trayect: row.trayect,
+    turn: row.turn,
+  });
+}
 
-    const creditsTotal = semesterItems.reduce((acc, item) => acc + item.credits, 0);
-    const creditsEarned = semesterItems.reduce((acc, item) => acc + (item.finalGrade >= 10 ? item.credits : 0), 0);
-    const validGrades = semesterItems.filter(item => item.finalGrade > 0);
-    const gpa = validGrades.length > 0 
-      ? validGrades.reduce((acc, item) => acc + item.finalGrade, 0) / validGrades.length 
-      : 0;
+type SemesterItem = {
+  semester: string;
+  trayect: number | null;
+  turn: string | null;
+  status: string;
+  creditsEarned: number;
+  creditsTotal: number;
+  gpa: number;
+  grades: Array<{
+    id: string;
+    subject: string;
+    evaluation1: number;
+    evaluation2: number;
+    evaluation3: number;
+    evaluation4: number;
+    evaluation5: number;
+    evaluation6: number;
+    evaluation7: number;
+    evaluation8: number;
+    finalGrade: number;
+  }>;
+};
 
-    careerHistory.semesters.push({
-      semester: semesterNum,
-      status: semesterItems.every(item => item.status === 'completed') ? 'completed' : 'enrolled',
-      creditsTotal,
-      creditsEarned,
-      gpa,
-      grades: gradesList
+const degreeMap = new Map<string, { degree: string; semesters: SemesterItem[] }>();
+
+for (const row of historyRows) {
+  if (!degreeMap.has(row.degree)) {
+    degreeMap.set(row.degree, { degree: row.degree, semesters: [] });
+  }
+
+  const degreeEntry = degreeMap.get(row.degree)!;
+  let semesterEntry = degreeEntry.semesters.find((item) => item.semester === row.semesterLabel);
+
+  if (!semesterEntry) {
+    const semesterOrder = parseSemesterOrder(row.semesterLabel);
+    const semesterMeta = semesterMetaByCareerAndOrder.get(`${row.careerId}-${semesterOrder}`);
+
+    semesterEntry = {
+      semester: row.semesterLabel,
+      trayect: semesterMeta?.trayect ?? null,
+      turn: semesterMeta?.turn ?? null,
+      status: row.status,
+      creditsEarned: row.creditsEarned,
+      creditsTotal: row.creditsTotal,
+      gpa: Number(row.gpa ?? 0),
+      grades: [],
+    };
+    degreeEntry.semesters.push(semesterEntry);
+  }
+
+  if (row.gradeId) {
+    semesterEntry.grades.push({
+      id: row.gradeId,
+      subject: row.subjectName ?? 'Sin asignatura',
+      evaluation1: Number(row.evaluation1 ?? 0),
+      evaluation2: Number(row.evaluation2 ?? 0),
+      evaluation3: Number(row.evaluation3 ?? 0),
+      evaluation4: Number(row.evaluation4 ?? 0),
+      evaluation5: Number(row.evaluation5 ?? 0),
+      evaluation6: Number(row.evaluation6 ?? 0),
+      evaluation7: Number(row.evaluation7 ?? 0),
+      evaluation8: Number(row.evaluation8 ?? 0),
+      finalGrade: Number(row.finalGrade ?? 0),
     });
   }
-  formattedHistory.push(careerHistory);
 }
+
+const formattedHistory = Array.from(degreeMap.values()).map((entry) => ({
+  ...entry,
+  semesters: entry.semesters.sort(
+    (a, b) => parseSemesterOrder(a.semester) - parseSemesterOrder(b.semester)
+  ),
+}));
 ---
 
 <LayoutSideBar>

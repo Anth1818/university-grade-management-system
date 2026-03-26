@@ -1,0 +1,191 @@
+---
+import LayoutSideBar from "@/layouts/LayoutSideBar.astro";
+import { ProfileSettings } from "@/components/profile/ProfileSettings";
+import { db } from "@/lib/db";
+import { careerSemesters, careers, studentProfiles, studentPrograms, users } from "@/lib/db/schema";
+import { and, eq } from "drizzle-orm";
+
+const sessionUser = Astro.locals.user;
+
+if (!sessionUser) {
+  return Astro.redirect("/auth");
+}
+
+const userRows = await db
+  .select({
+    id: users.id,
+    name: users.name,
+    email: users.email,
+    role: users.role,
+    createdAt: users.createdAt,
+  })
+  .from(users)
+  .where(eq(users.id, sessionUser.id))
+  .limit(1);
+
+const user = userRows[0];
+
+if (!user) {
+  return Astro.redirect("/auth");
+}
+
+const studentProfileRows =
+  user.role === "student"
+    ? await db
+        .select({
+          phone: studentProfiles.phone,
+          address: studentProfiles.address,
+        })
+        .from(studentProfiles)
+        .where(eq(studentProfiles.userId, user.id))
+        .limit(1)
+    : [];
+
+const studentProgramRows =
+  user.role === "student"
+    ? await db
+        .select({
+          careerName: careers.name,
+          currentSemesterOrder: studentPrograms.currentSemesterOrder,
+          currentSemesterLabel: studentPrograms.currentSemesterLabel,
+          currentTurn: studentPrograms.currentTurn,
+          trayect: careerSemesters.trayect,
+          status: studentPrograms.status,
+          admissionPeriod: studentPrograms.admissionPeriod,
+        })
+        .from(studentPrograms)
+        .innerJoin(careers, eq(studentPrograms.careerId, careers.id))
+        .leftJoin(
+          careerSemesters,
+          and(
+            eq(careerSemesters.careerId, studentPrograms.careerId),
+            eq(careerSemesters.semesterOrder, studentPrograms.currentSemesterOrder)
+          )
+        )
+        .where(eq(studentPrograms.studentId, user.id))
+        .limit(1)
+    : [];
+
+const studentProfile = studentProfileRows[0] ?? null;
+const studentProgram = studentProgramRows[0] ?? null;
+
+const roleLabelMap: Record<string, string> = {
+  student: "Estudiante",
+  teacher: "Docente",
+  analyst: "Analista",
+};
+
+const statusLabelMap: Record<string, string> = {
+  active: "Activo",
+  paused: "Pausado",
+  graduated: "Graduado",
+  dropped: "Retirado",
+};
+
+const formatDate = (value: Date | null | undefined) => {
+  if (!value) return "No disponible";
+  return new Date(value).toLocaleDateString("es-VE", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
+---
+
+<LayoutSideBar>
+  <div class="container mx-auto max-w-5xl p-4 space-y-6">
+    <div class="rounded-xl border bg-card p-6 shadow-sm">
+      <h1 class="text-2xl font-bold">Perfil de usuario</h1>
+      <p class="text-sm text-muted-foreground mt-1">
+        Información de cuenta y datos académicos asociados.
+      </p>
+    </div>
+
+    <section class="rounded-xl border bg-card p-6 shadow-sm">
+      <h2 class="text-lg font-semibold mb-4">Datos de cuenta</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+        <div>
+          <p class="text-muted-foreground">Nombre</p>
+          <p class="font-medium">{user.name}</p>
+        </div>
+        <div>
+          <p class="text-muted-foreground">Correo</p>
+          <p class="font-medium">{user.email}</p>
+        </div>
+        <div>
+          <p class="text-muted-foreground">Rol</p>
+          <p class="font-medium">{roleLabelMap[user.role] ?? user.role}</p>
+        </div>
+        <div>
+          <p class="text-muted-foreground">Miembro desde</p>
+          <p class="font-medium">{formatDate(user.createdAt)}</p>
+        </div>
+      </div>
+    </section>
+
+    {
+      user.role === "student" && (
+        <>
+          <section class="rounded-xl border bg-card p-6 shadow-sm">
+            <h2 class="text-lg font-semibold mb-4">Datos académicos</h2>
+            {studentProgram ? (
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p class="text-muted-foreground">Carrera</p>
+                  <p class="font-medium">{studentProgram.careerName}</p>
+                </div>
+                <div>
+                  <p class="text-muted-foreground">Semestre actual</p>
+                  <p class="font-medium">
+                    {studentProgram.currentSemesterLabel ?? `Semestre ${studentProgram.currentSemesterOrder}`}
+                  </p>
+                </div>
+                <div>
+                  <p class="text-muted-foreground">Turno</p>
+                  <p class="font-medium">{studentProgram.currentTurn}</p>
+                </div>
+                <div>
+                  <p class="text-muted-foreground">Trayecto</p>
+                  <p class="font-medium">{studentProgram.trayect ? `Trayecto ${studentProgram.trayect}` : "No disponible"}</p>
+                </div>
+                <div>
+                  <p class="text-muted-foreground">Estado del programa</p>
+                  <p class="font-medium">{statusLabelMap[studentProgram.status] ?? studentProgram.status}</p>
+                </div>
+                <div>
+                  <p class="text-muted-foreground">Periodo de ingreso</p>
+                  <p class="font-medium">{studentProgram.admissionPeriod ?? "No disponible"}</p>
+                </div>
+              </div>
+            ) : (
+              <p class="text-sm text-muted-foreground">
+                No tienes un programa académico activo asignado todavía.
+              </p>
+            )}
+          </section>
+
+          <section class="rounded-xl border bg-card p-6 shadow-sm">
+            <h2 class="text-lg font-semibold mb-4">Datos de contacto</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <p class="text-muted-foreground">Teléfono</p>
+                <p class="font-medium">{studentProfile?.phone ?? "No registrado"}</p>
+              </div>
+              <div>
+                <p class="text-muted-foreground">Dirección</p>
+                <p class="font-medium">{studentProfile?.address ?? "No registrada"}</p>
+              </div>
+            </div>
+          </section>
+        </>
+      )
+    }
+
+    <ProfileSettings
+      role={user.role}
+      initialPhone={studentProfile?.phone ?? null}
+      initialAddress={studentProfile?.address ?? null}
+      client:load
+    />
+  </div>
+</LayoutSideBar>

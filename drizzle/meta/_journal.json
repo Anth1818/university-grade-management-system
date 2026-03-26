@@ -15,6 +15,20 @@
       "when": 1774473545343,
       "tag": "0001_marvelous_makkari",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1774536696174,
+      "tag": "0002_spooky_cammi",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1774545846734,
+      "tag": "0003_exotic_rocket_raccoon",
+      "breakpoints": true
     }
   ]
 }

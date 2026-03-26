@@ -24,6 +24,7 @@ export type Subject = {
 
 export type SemesterData = {
     career?: string;
+    trayect?: number;
     semester: string;
     block: string;
     turn: string;

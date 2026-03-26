@@ -20,6 +20,16 @@ export const careers = sqliteTable('careers', {
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 });
 
+export const careerSemesters = sqliteTable('career_semesters', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  careerId: text('career_id').notNull().references(() => careers.id),
+  trayect: integer('trayect').notNull(),
+  semesterOrder: integer('semester_order').notNull(),
+  semesterLabel: text('semester_label').notNull(),
+  turn: text('turn', { enum: ['matutino', 'vespertino', 'nocturno'] }).notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+});
+
 export const subjects = sqliteTable('subjects', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
   name: text('name').notNull(),
@@ -39,7 +49,7 @@ export const sections = sqliteTable('sections', {
   teacherId: text('teacher_id').references(() => users.id),
   semesterLabel: text('semester_label').notNull(),
   semesterOrder: integer('semester_order'),
-  turn: text('turn').notNull(), // e.g., 'morning', 'afternoon', 'night'
+  turn: text('turn', { enum: ['matutino', 'vespertino', 'nocturno'] }).notNull(),
   classroom: text('classroom').notNull(),
   day: text('day').notNull(),
   time: text('time').notNull(),
@@ -63,7 +73,7 @@ export const cohortSections = sqliteTable('cohort_sections', {
   externalCode: text('external_code').notNull().unique(),
   careerId: text('career_id').notNull().references(() => careers.id),
   semester: integer('semester').notNull(),
-  turn: text('turn').notNull(),
+  turn: text('turn', { enum: ['matutino', 'vespertino', 'nocturno'] }).notNull(),
   totalStudents: integer('total_students').notNull(),
   classroom: text('classroom'),
   day: text('day'),
@@ -77,6 +87,32 @@ export const studentProfiles = sqliteTable('student_profiles', {
   phone: text('phone'),
   address: text('address'),
   cohortSectionId: text('cohort_section_id').references(() => cohortSections.id),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+});
+
+export const studentPrograms = sqliteTable('student_programs', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  studentId: text('student_id').notNull().unique().references(() => users.id),
+  careerId: text('career_id').notNull().references(() => careers.id),
+  currentSemesterOrder: integer('current_semester_order').notNull().default(1),
+  currentSemesterLabel: text('current_semester_label'),
+  currentTurn: text('current_turn', { enum: ['matutino', 'vespertino', 'nocturno'] }).notNull().default('matutino'),
+  admissionPeriod: text('admission_period'),
+  status: text('status', { enum: ['active', 'paused', 'graduated', 'dropped'] }).notNull().default('active'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+});
+
+export const studentSemesterHistory = sqliteTable('student_semester_history', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  studentProgramId: text('student_program_id').notNull().references(() => studentPrograms.id),
+  semesterOrder: integer('semester_order').notNull(),
+  semesterLabel: text('semester_label').notNull(),
+  turn: text('turn', { enum: ['matutino', 'vespertino', 'nocturno'] }).notNull().default('matutino'),
+  status: text('status', { enum: ['completed', 'in-progress', 'pending', 'failed', 'withdrawn'] }).notNull(),
+  creditsTaken: integer('credits_taken').notNull().default(0),
+  creditsApproved: integer('credits_approved').notNull().default(0),
+  gpa: real('gpa').notNull().default(0),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 });
 
@@ -107,6 +143,13 @@ export const sectionTeacherOptionsRelations = relations(sectionTeacherOptions, (
   }),
 }));
 
+export const careerSemestersRelations = relations(careerSemesters, ({ one }) => ({
+  career: one(careers, {
+    fields: [careerSemesters.careerId],
+    references: [careers.id],
+  }),
+}));
+
 export const cohortSectionsRelations = relations(cohortSections, ({ one, many }) => ({
   career: one(careers, {
     fields: [cohortSections.careerId],
@@ -123,6 +166,25 @@ export const studentProfilesRelations = relations(studentProfiles, ({ one }) => 
   cohortSection: one(cohortSections, {
     fields: [studentProfiles.cohortSectionId],
     references: [cohortSections.id],
+  }),
+}));
+
+export const studentProgramsRelations = relations(studentPrograms, ({ one, many }) => ({
+  student: one(users, {
+    fields: [studentPrograms.studentId],
+    references: [users.id],
+  }),
+  career: one(careers, {
+    fields: [studentPrograms.careerId],
+    references: [careers.id],
+  }),
+  semesterHistory: many(studentSemesterHistory),
+}));
+
+export const studentSemesterHistoryRelations = relations(studentSemesterHistory, ({ one }) => ({
+  program: one(studentPrograms, {
+    fields: [studentSemesterHistory.studentProgramId],
+    references: [studentPrograms.id],
   }),
 }));
 
@@ -240,6 +302,10 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     fields: [users.id],
     references: [studentProfiles.userId],
   }),
+  studentProgram: one(studentPrograms, {
+    fields: [users.id],
+    references: [studentPrograms.studentId],
+  }),
   taughtSections: many(sections),
   enrollmentRecords: many(enrollments),
   gradeRecords: many(grades),
@@ -251,7 +317,9 @@ export const usersRelations = relations(users, ({ one, many }) => ({
 export const careersRelations = relations(careers, ({ many }) => ({
   subjects: many(subjects),
   sections: many(sections),
+  careerSemesters: many(careerSemesters),
   cohortSections: many(cohortSections),
+  studentPrograms: many(studentPrograms),
   academicHistories: many(academicHistories),
 }));
 

@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { actions } from "astro:actions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,14 +16,13 @@ import {
 } from "lucide-react";
 
 import type { SignOnStatus, SemesterData } from "@/lib/types";
-import { semesterSubjectsData } from "@/data/semesterSubjectsData";
 import { SubjectsBlockAccordion } from "../general/SubjectsBlockAccordion";
 import {AlredyEnrolled} from "../general/AlredyEnrolled";
 import { Loader } from "@/components/shared/Loader";
 
 interface StudentSignOnProps {
   initialStatus: SignOnStatus;
-  availableBlocks: any[];
+  availableBlocks: SemesterData[] | null;
   studentId: string;
 }
 
@@ -32,17 +32,33 @@ export function StudentSignOn({ initialStatus, availableBlocks, studentId }: Stu
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedBlock, setSelectedBlock] = useState<string | null>(null);
 
+ 
   const handleConfirmRegistration = async () => {
     if (!selectedBlock) return;
     setIsSubmitting(true);
     try {
-      // Simulation for demo
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const { data, error } = await actions.student.enrollSemester({
+        block: selectedBlock,
+      });
+
+      if (error || !data?.success) {
+        throw new Error(error?.message ?? "No se pudo registrar la inscripción.");
+      }
+
       setStatus("already-enrolled");
+
+      // Reload to refresh status and related modules that depend on DB state.
+      window.setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (error) {
       console.error("Error during registration:", error);
+      const errorMessage =
+        error instanceof Error && error.message
+          ? error.message
+          : "Ocurrió un error al procesar su solicitud.";
       alert(
-        "Ocurrió un error al procesar su solicitud. Por favor, intente nuevamente."
+        `${errorMessage} Por favor, intente nuevamente.`
       );
     } finally {
       setIsSubmitting(false);

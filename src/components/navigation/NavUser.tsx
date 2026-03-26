@@ -83,7 +83,7 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { window.location.href = "/profile" }}>
                 <UserRound />
                 Perfil
               </DropdownMenuItem>

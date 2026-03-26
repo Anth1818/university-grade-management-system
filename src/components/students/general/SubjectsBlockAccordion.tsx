@@ -16,6 +16,8 @@ export const SubjectsBlockAccordion = ({ semesterSubjects, setSelectedBlock }: S
                 <Accordion type="single" collapsible>
                     <AccordionItem value={`item-${index}`}>
                         <AccordionTrigger className="text-lg font-medium">
+                            {item.career ? `${item.career} | ` : ''}
+                            {item.trayect ? `Trayecto ${item.trayect} | ` : ''}
                             {item.semester} | Bloque: {item.block} | {item.subjects.length} materias | Turno: {item.turn}
                         </AccordionTrigger>
                         <AccordionContent>

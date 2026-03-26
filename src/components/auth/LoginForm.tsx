@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
-import { Loader2 } from "lucide-react"
+import { Eye, EyeOff, Loader2 } from "lucide-react"
 
 export function LoginForm({
   className,
@@ -21,6 +21,7 @@ export function LoginForm({
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -94,7 +95,23 @@ export function LoginForm({
                 <div className="flex items-center">
                   <Label htmlFor="password">Contraseña</Label>
                 </div>
-                <Input id="password" name="password" type="password" required />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    className="pr-10"
+                    required
+                  />
+                  <button
+                    type="button"
+                    aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground"
+                    onClick={() => setShowPassword((value) => !value)}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
               {error && <p className="text-sm text-red-500 font-medium">{error}</p>}
               {success && <p className="text-sm text-green-600 font-medium">{success}</p>}

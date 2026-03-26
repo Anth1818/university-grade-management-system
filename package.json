@@ -10,6 +10,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx src/lib/db/seed.ts",
+    "db:backfill:programs": "tsx src/lib/db/backfillStudentPrograms.ts",
     "db:reset": "node -e \"const fs=require('node:fs'); ['local.db','local.db-shm','local.db-wal'].forEach((f)=>{ try { if (fs.existsSync(f)) fs.rmSync(f); } catch (e) { if (e && e.code === 'EPERM') { console.warn('Skipping locked file:', f); } else { throw e; } } });\" && pnpm db:generate && pnpm db:migrate && pnpm db:seed",
     "local.db": "pnpm db:generate && pnpm db:migrate && pnpm db:seed"
   },

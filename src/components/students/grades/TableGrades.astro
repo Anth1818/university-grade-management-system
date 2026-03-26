@@ -36,44 +36,50 @@ const { className, grades } = Astro.props;
     </div>
   </CardHeader>
   <CardContent>
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="w-[200px]">Materia</TableHead>
-          <TableHead className="text-center">Eval 1</TableHead>
-          <TableHead className="text-center">Eval 2</TableHead>
-          <TableHead className="text-center">Eval 3</TableHead>
-          <TableHead className="text-center">Eval 4</TableHead>
-          <TableHead className="text-center">Eval 5</TableHead>
-          <TableHead className="text-center">Eval 6</TableHead>
-          <TableHead className="text-center">Eval 7</TableHead>
-          <TableHead className="text-center">Eval 8</TableHead>
-          <TableHead className="text-right">Calificación Final</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {
-          grades.map((grade) => (
-            <TableRow key={grade.id}>
-              <TableCell className="font-medium">{grade.subjectName}</TableCell>
-              <TableCell className="text-center">{grade.evaluation1}</TableCell>
-              <TableCell className="text-center">{grade.evaluation2}</TableCell>
-              <TableCell className="text-center">{grade.evaluation3}</TableCell>
-              <TableCell className="text-center">{grade.evaluation4}</TableCell>
-              <TableCell className="text-center">{grade.evaluation5}</TableCell>
-              <TableCell className="text-center">{grade.evaluation6}</TableCell>
-              <TableCell className="text-center">{grade.evaluation7}</TableCell>
-              <TableCell className="text-center">{grade.evaluation8}</TableCell>
-              <TableCell
-                className={`text-right font-semibold ${grade.finalGrade !== undefined && grade.finalGrade < 10 ? "text-red-500" : ""}`}
-              >
-                {grade.finalGrade}
-              </TableCell>
-            </TableRow>
-          ))
-        }
-      </TableBody>
-    </Table>
+    {grades.length === 0 ? (
+      <p class="text-sm text-muted-foreground">
+        No se encontraron materias inscritas para el semestre actual.
+      </p>
+    ) : (
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[200px]">Materia</TableHead>
+            <TableHead className="text-center">Eval 1</TableHead>
+            <TableHead className="text-center">Eval 2</TableHead>
+            <TableHead className="text-center">Eval 3</TableHead>
+            <TableHead className="text-center">Eval 4</TableHead>
+            <TableHead className="text-center">Eval 5</TableHead>
+            <TableHead className="text-center">Eval 6</TableHead>
+            <TableHead className="text-center">Eval 7</TableHead>
+            <TableHead className="text-center">Eval 8</TableHead>
+            <TableHead className="text-right">Calificación Final</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {
+            grades.map((grade) => (
+              <TableRow key={grade.id}>
+                <TableCell className="font-medium">{grade.subjectName}</TableCell>
+                <TableCell className="text-center">{grade.evaluation1}</TableCell>
+                <TableCell className="text-center">{grade.evaluation2}</TableCell>
+                <TableCell className="text-center">{grade.evaluation3}</TableCell>
+                <TableCell className="text-center">{grade.evaluation4}</TableCell>
+                <TableCell className="text-center">{grade.evaluation5}</TableCell>
+                <TableCell className="text-center">{grade.evaluation6}</TableCell>
+                <TableCell className="text-center">{grade.evaluation7}</TableCell>
+                <TableCell className="text-center">{grade.evaluation8}</TableCell>
+                <TableCell
+                  className={`text-right font-semibold ${grade.finalGrade !== undefined && grade.finalGrade < 10 ? "text-red-500" : ""}`}
+                >
+                  {grade.finalGrade}
+                </TableCell>
+              </TableRow>
+            ))
+          }
+        </TableBody>
+      </Table>
+    )}
   </CardContent>
 </Card>
 

@@ -2,11 +2,14 @@ import { db } from './index';
 import {
   users,
   careers,
+  careerSemesters,
   subjects,
   sections,
   sectionTeacherOptions,
   cohortSections,
   studentProfiles,
+  studentPrograms,
+  studentSemesterHistory,
   enrollments,
   grades,
   academicHistories,
@@ -22,6 +25,7 @@ import { sectionListData } from '@/data/sectionsListData';
 import { academicHistoryData } from '@/data/academicHistoryData';
 import { gradesData } from '@/data/gradesData';
 import type { Grade } from '../types';
+import { and, asc, eq } from 'drizzle-orm';
 
 type UserRole = 'student' | 'teacher' | 'analyst';
 
@@ -33,9 +37,60 @@ const slugify = (value: string) =>
     .replace(/[^a-z0-9]+/g, '.')
     .replace(/^\.|\.$/g, '');
 
+const canonicalCareerName = (value: string) => {
+  const normalized = value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+
+  const aliases: Record<string, string> = {
+    'Ingenieria en Computacion': 'Ingenieria en Computacion',
+    'Ingenieria en Sistemas': 'Ingenieria en Sistemas',
+    Informatica: 'Informatica',
+    Turismo: 'Turismo',
+    Administracion: 'Administracion',
+    Filosofia: 'Filosofia',
+    Medicina: 'Medicina',
+    Contaduria: 'Contaduria',
+  };
+
+  return aliases[normalized] ?? normalized;
+};
+
 const parseSemesterOrder = (value: string) => {
   const match = value.match(/\d+/);
   return match ? Number(match[0]) : null;
+};
+
+const normalizeTurn = (value: string | null | undefined): 'matutino' | 'vespertino' | 'nocturno' => {
+  const normalized = (value ?? '').toLowerCase();
+  if (normalized.includes('vesp')) return 'vespertino';
+  if (normalized.includes('noche') || normalized.includes('noct')) return 'nocturno';
+  return 'matutino';
+};
+
+type CareerStructure = {
+  semesters: number;
+  defaultTurn: 'matutino' | 'vespertino' | 'nocturno';
+};
+
+const careerStructureByName: Record<string, CareerStructure> = {
+  Informatica: { semesters: 8, defaultTurn: 'matutino' },
+  Turismo: { semesters: 6, defaultTurn: 'vespertino' },
+  Administracion: { semesters: 6, defaultTurn: 'vespertino' },
+  Filosofia: { semesters: 8, defaultTurn: 'nocturno' },
+  Medicina: { semesters: 12, defaultTurn: 'matutino' },
+  Contaduria: { semesters: 8, defaultTurn: 'vespertino' },
+  'Ingenieria en Computacion': { semesters: 8, defaultTurn: 'matutino' },
+  'Ingenieria en Sistemas': { semesters: 8, defaultTurn: 'matutino' },
+};
+
+const getCareerStructure = (careerName: string): CareerStructure => {
+  return careerStructureByName[careerName] ?? { semesters: 8, defaultTurn: 'matutino' };
+};
+
+const getTrayectBySemesterOrder = (semesterOrder: number) => {
+  return Math.max(1, Math.ceil(semesterOrder / 2));
 };
 
 const toUniqueEmail = (baseEmail: string, usedEmails: Set<string>, suffix: string) => {
@@ -104,6 +159,9 @@ async function seed() {
   await safeDelete(grades);
   await safeDelete(enrollments);
   await safeDelete(sectionTeacherOptions);
+  await safeDelete(careerSemesters);
+  await safeDelete(studentSemesterHistory);
+  await safeDelete(studentPrograms);
   await safeDelete(studentProfiles);
   await safeDelete(cohortSections);
   await safeDelete(sections);
@@ -124,6 +182,7 @@ async function seed() {
   const careersByName = new Map<string, { id: string; name: string }>();
   const subjectsByCode = new Map<string, { id: string; code: string; name: string }>();
   const teachersByName = new Map<string, { id: string; email: string }>();
+  const studentProgramsByStudentId = new Map<string, { id: string }>();
 
   // ---------------------------------------------------------------------------
   // 3) Helpers de insercion con cache en memoria
@@ -156,7 +215,7 @@ async function seed() {
   };
 
   const ensureCareer = async (name: string) => {
-    const normalizedName = name.trim();
+    const normalizedName = canonicalCareerName(name);
     const existing = careersByName.get(normalizedName);
     if (existing) {
       return existing;
@@ -164,6 +223,20 @@ async function seed() {
 
     const created = await db.insert(careers).values({ name: normalizedName }).returning().get();
     careersByName.set(normalizedName, created);
+
+    const structure = getCareerStructure(normalizedName);
+    const semesterRows = Array.from({ length: structure.semesters }, (_, index) => {
+      const semesterOrder = index + 1;
+      return {
+        careerId: created.id,
+        trayect: getTrayectBySemesterOrder(semesterOrder),
+        semesterOrder,
+        semesterLabel: `Semestre ${semesterOrder}`,
+        turn: structure.defaultTurn,
+      };
+    });
+
+    await db.insert(careerSemesters).values(semesterRows);
     return created;
   };
 
@@ -198,6 +271,9 @@ async function seed() {
   await ensureCareer('Informatica');
   await ensureCareer('Administracion');
   await ensureCareer('Turismo');
+  await ensureCareer('Filosofia');
+  await ensureCareer('Medicina');
+  await ensureCareer('Contaduria');
 
   // ---------------------------------------------------------------------------
   // 5) Carga de materias y docentes desde datasets
@@ -213,7 +289,7 @@ async function seed() {
   }
 
   for (const semester of semesterSubjectsData) {
-    const careerName = semester.career ?? 'Ingenieria en Sistemas';
+    const careerName = canonicalCareerName(semester.career ?? 'Ingenieria en Sistemas');
     await ensureCareer(careerName);
 
     for (const subject of semester.subjects) {
@@ -256,7 +332,7 @@ async function seed() {
         teacherId: teacher?.id,
         semesterLabel: semester.semester,
         semesterOrder: parseSemesterOrder(semester.semester),
-        turn: semester.turn,
+        turn: normalizeTurn(semester.turn),
         classroom: subject.classroom,
         day: subject.day,
         time: subject.time,
@@ -280,7 +356,7 @@ async function seed() {
   }
 
   for (const semester of semesterSubjectsData) {
-    const careerName = semester.career ?? 'Ingenieria en Sistemas';
+    const careerName = canonicalCareerName(semester.career ?? 'Ingenieria en Sistemas');
     const career = careersByName.get(careerName);
     if (!career) continue;
 
@@ -295,7 +371,7 @@ async function seed() {
         teacherId,
         semesterLabel: semester.semester,
         semesterOrder: parseSemesterOrder(semester.semester),
-        turn: semester.turn,
+        turn: normalizeTurn(semester.turn),
         classroom: subject.classroom || 'Por definir',
         day: subject.day || 'Por definir',
         time: subject.time || 'Por definir',
@@ -332,7 +408,7 @@ async function seed() {
           teacherId,
           semesterLabel: semester.semester,
           semesterOrder: 0,
-          turn: semester.turn,
+          turn: normalizeTurn(semester.turn),
           classroom: subject.classroom,
           day: subject.day,
           time: subject.time,
@@ -355,7 +431,7 @@ async function seed() {
       externalCode: section.idSection,
       careerId: career.id,
       semester: section.semester,
-      turn: section.turn,
+      turn: normalizeTurn(section.turn),
       totalStudents: section.totalStudents,
       classroom: section.classroom,
       day: section.day,
@@ -404,15 +480,45 @@ async function seed() {
   for (let idx = 0; idx < academicHistoryData.length; idx += 1) {
     const history = academicHistoryData[idx];
     const studentId = historyStudentMap[idx] ?? student1.id;
-    const career = await ensureCareer(history.degree);
+    const canonicalDegree = canonicalCareerName(history.degree);
+    const career = await ensureCareer(canonicalDegree);
+
+    const latestSemester = history.semesters.reduce(
+      (acc, semester, semesterIndex) => {
+        const parsedOrder = parseSemesterOrder(semester.semester) ?? semesterIndex + 1;
+        if (parsedOrder > acc.order) {
+          return { order: parsedOrder, label: semester.semester };
+        }
+        return acc;
+      },
+      { order: 1, label: history.semesters[0]?.semester ?? 'Semestre 1' }
+    );
+
+    let program = studentProgramsByStudentId.get(studentId);
+    if (!program) {
+      const createdProgram = await db.insert(studentPrograms).values({
+        studentId,
+        careerId: career.id,
+        currentSemesterOrder: latestSemester.order,
+        currentSemesterLabel: latestSemester.label,
+        currentTurn: getCareerStructure(canonicalDegree).defaultTurn,
+        admissionPeriod: '2026-1',
+        status: 'active',
+      }).returning().get();
+
+      program = { id: createdProgram.id };
+      studentProgramsByStudentId.set(studentId, program);
+    }
 
     const createdHistory = await db.insert(academicHistories).values({
       studentId,
       careerId: career.id,
-      degreeName: history.degree,
+      degreeName: canonicalDegree,
     }).returning().get();
 
     for (const semester of history.semesters) {
+      const semesterOrder = parseSemesterOrder(semester.semester) ?? 1;
+
       const createdSemester = await db.insert(academicSemesters).values({
         academicHistoryId: createdHistory.id,
         semesterLabel: semester.semester,
@@ -421,6 +527,17 @@ async function seed() {
         creditsTotal: semester.creditsTotal,
         gpa: semester.gpa,
       }).returning().get();
+
+      await db.insert(studentSemesterHistory).values({
+        studentProgramId: program.id,
+        semesterOrder,
+        semesterLabel: semester.semester,
+        turn: getCareerStructure(canonicalDegree).defaultTurn,
+        status: semester.status,
+        creditsTaken: semester.creditsTotal,
+        creditsApproved: semester.creditsEarned,
+        gpa: semester.gpa,
+      });
 
       for (const grade of semester.grades) {
         const matchedSubject = Array.from(subjectsByCode.values()).find((item) => item.name === grade.subject);
@@ -447,89 +564,199 @@ async function seed() {
   // ---------------------------------------------------------------------------
   // 9) Inscripciones y calificaciones demo
   // ---------------------------------------------------------------------------
-  const enrollSectionA = insertedSections[0];
-  const enrollSectionB = insertedSections[1] ?? insertedSections[0];
+  const pickDemoSectionForCareer = async (
+    careerId: string,
+    careerName: string,
+    semesterOrder: number,
+    turn: 'matutino' | 'vespertino' | 'nocturno'
+  ) => {
+    const targetSemesterSection = await db
+      .select({ id: sections.id })
+      .from(sections)
+      .where(
+        and(
+          eq(sections.careerId, careerId),
+          eq(sections.semesterOrder, semesterOrder),
+          eq(sections.isRecovery, false)
+        )
+      )
+      .orderBy(asc(sections.createdAt))
+      .limit(1);
+
+    if (targetSemesterSection[0]) {
+      return targetSemesterSection[0];
+    }
+
+    const fallbackSection = await db
+      .select({ id: sections.id })
+      .from(sections)
+      .where(
+        and(
+          eq(sections.careerId, careerId),
+          eq(sections.isRecovery, false)
+        )
+      )
+      .orderBy(asc(sections.semesterOrder), asc(sections.createdAt))
+      .limit(1);
+
+    if (fallbackSection[0]) {
+      return fallbackSection[0];
+    }
+
+    // Ensure we always have at least one section in the active career for demo grades.
+    const demoSubjectCode = `DEMO-${slugify(careerName)}-${semesterOrder}`.toUpperCase();
+    const demoSubject = await ensureSubject(
+      `Materia Demo ${careerName}`,
+      demoSubjectCode,
+      3,
+      careerName
+    );
+
+    const createdDemoSection = await db.insert(sections).values({
+      careerId,
+      subjectId: demoSubject.id,
+      semesterLabel: `Semestre ${semesterOrder}`,
+      semesterOrder,
+      turn,
+      classroom: 'Aula Demo',
+      day: 'Lunes',
+      time: '08:00-10:00',
+      block: 'A',
+      isRecovery: false,
+      source: 'manual',
+    }).returning().get();
+
+    return { id: createdDemoSection.id };
+  };
 
   
 
-  if (enrollSectionA) {
+  if (true) {
     const gradeA = gradesData[0];
     const gradeASubjectCode = gradeA?.subject ? subjectsByCode.get(gradeA.subject)?.code : undefined;
 
-    const enrollmentA = await db.insert(enrollments).values({
-      studentId: student1.id,
-      sectionId: enrollSectionA.id,
-      status: 'completed',
-      recovery: false,
-    }).returning().get();
+    const student1Program = await db
+      .select({
+        careerId: studentPrograms.careerId,
+        careerName: careers.name,
+        currentTurn: studentPrograms.currentTurn,
+      })
+      .from(studentPrograms)
+      .innerJoin(careers, eq(studentPrograms.careerId, careers.id))
+      .where(eq(studentPrograms.studentId, student1.id))
+      .limit(1);
 
-    await db.insert(grades).values({
-      enrollmentId: enrollmentA.id,
-      studentId: student1.id,
-      ...(gradeASubjectCode ? { subjectCode: gradeASubjectCode } : {}),
-      career: 'Ingenieria en Computacion',
-      semester: String(gradeA?.semester ?? 0),
-      evaluation1: gradeA?.evaluation1 ?? 0,
-      evaluation2: gradeA?.evaluation2 ?? 0,
-      evaluation3: gradeA?.evaluation3 ?? 0,
-      evaluation4: gradeA?.evaluation4 ?? 0,
-      evaluation5: gradeA?.evaluation5 ?? 0,
-      evaluation6: gradeA?.evaluation6 ?? 0,
-      evaluation7: gradeA?.evaluation7 ?? 0,
-      evaluation8: gradeA?.evaluation8 ?? 0,
-      finalGrade: finalGrade(gradeA ?? {
-        id: 'seed-grade-a',
-        evaluation1: 0,
-        evaluation2: 0,
-        evaluation3: 0,
-        evaluation4: 0,
-        evaluation5: 0,
-        evaluation6: 0,
-        evaluation7: 0,
-        evaluation8: 0,
-      }),
-    });
+    const programA = student1Program[0];
+    const enrollSectionA = programA
+      ? await pickDemoSectionForCareer(
+          programA.careerId,
+          programA.careerName,
+          Number(gradeA?.semester ?? 1),
+          programA.currentTurn
+        )
+      : null;
+
+    if (!programA || !enrollSectionA) {
+      console.warn('Skipping demo grade for student1: no active program/section found.');
+    } else {
+      const enrollmentA = await db.insert(enrollments).values({
+        studentId: student1.id,
+        sectionId: enrollSectionA.id,
+        status: 'completed',
+        recovery: false,
+      }).returning().get();
+
+      await db.insert(grades).values({
+        enrollmentId: enrollmentA.id,
+        studentId: student1.id,
+        ...(gradeASubjectCode ? { subjectCode: gradeASubjectCode } : {}),
+        career: programA.careerName,
+        semester: String(gradeA?.semester ?? 0),
+        evaluation1: gradeA?.evaluation1 ?? 0,
+        evaluation2: gradeA?.evaluation2 ?? 0,
+        evaluation3: gradeA?.evaluation3 ?? 0,
+        evaluation4: gradeA?.evaluation4 ?? 0,
+        evaluation5: gradeA?.evaluation5 ?? 0,
+        evaluation6: gradeA?.evaluation6 ?? 0,
+        evaluation7: gradeA?.evaluation7 ?? 0,
+        evaluation8: gradeA?.evaluation8 ?? 0,
+        finalGrade: finalGrade(gradeA ?? {
+          id: 'seed-grade-a',
+          evaluation1: 0,
+          evaluation2: 0,
+          evaluation3: 0,
+          evaluation4: 0,
+          evaluation5: 0,
+          evaluation6: 0,
+          evaluation7: 0,
+          evaluation8: 0,
+        }),
+      });
+    }
   }
 
-  if (enrollSectionB) {
+  if (true) {
     const gradeB = gradesData[1];
     const gradeBSubjectCode = gradeB?.subject ? subjectsByCode.get(gradeB.subject)?.code : undefined;
 
-    const enrollmentB = await db.insert(enrollments).values({
-      studentId: student2.id,
-      sectionId: enrollSectionB.id,
-      status: 'enrolled',
-      recovery: false,
-    }).returning().get();
+    const student2Program = await db
+      .select({
+        careerId: studentPrograms.careerId,
+        careerName: careers.name,
+        currentTurn: studentPrograms.currentTurn,
+      })
+      .from(studentPrograms)
+      .innerJoin(careers, eq(studentPrograms.careerId, careers.id))
+      .where(eq(studentPrograms.studentId, student2.id))
+      .limit(1);
 
+    const programB = student2Program[0];
+    const enrollSectionB = programB
+      ? await pickDemoSectionForCareer(
+          programB.careerId,
+          programB.careerName,
+          Number(gradeB?.semester ?? 1),
+          programB.currentTurn
+        )
+      : null;
 
+    if (!programB || !enrollSectionB) {
+      console.warn('Skipping demo grade for student2: no active program/section found.');
+    } else {
+      const enrollmentB = await db.insert(enrollments).values({
+        studentId: student2.id,
+        sectionId: enrollSectionB.id,
+        status: 'enrolled',
+        recovery: false,
+      }).returning().get();
 
-    await db.insert(grades).values({
-      enrollmentId: enrollmentB.id,
-      studentId: student2.id,
-      ...(gradeBSubjectCode ? { subjectCode: gradeBSubjectCode } : {}),
-      career: 'Ingenieria en Computacion',
-      semester: String(gradeB?.semester ?? 0),
-      evaluation1: gradeB?.evaluation1 ?? 0,
-      evaluation2: gradeB?.evaluation2 ?? 0,
-      evaluation3: gradeB?.evaluation3 ?? 0,
-      evaluation4: gradeB?.evaluation4 ?? 0,
-      evaluation5: gradeB?.evaluation5 ?? 0,
-      evaluation6: gradeB?.evaluation6 ?? 0,
-      evaluation7: gradeB?.evaluation7 ?? 0,
-      evaluation8: gradeB?.evaluation8 ?? 0,
-      finalGrade: finalGrade(gradeB ?? {
-        id: 'seed-grade-b',
-        evaluation1: 0,
-        evaluation2: 0,
-        evaluation3: 0,
-        evaluation4: 0,
-        evaluation5: 0,
-        evaluation6: 0,
-        evaluation7: 0,
-        evaluation8: 0,
-      }),
-    });
+      await db.insert(grades).values({
+        enrollmentId: enrollmentB.id,
+        studentId: student2.id,
+        ...(gradeBSubjectCode ? { subjectCode: gradeBSubjectCode } : {}),
+        career: programB.careerName,
+        semester: String(gradeB?.semester ?? 0),
+        evaluation1: gradeB?.evaluation1 ?? 0,
+        evaluation2: gradeB?.evaluation2 ?? 0,
+        evaluation3: gradeB?.evaluation3 ?? 0,
+        evaluation4: gradeB?.evaluation4 ?? 0,
+        evaluation5: gradeB?.evaluation5 ?? 0,
+        evaluation6: gradeB?.evaluation6 ?? 0,
+        evaluation7: gradeB?.evaluation7 ?? 0,
+        evaluation8: gradeB?.evaluation8 ?? 0,
+        finalGrade: finalGrade(gradeB ?? {
+          id: 'seed-grade-b',
+          evaluation1: 0,
+          evaluation2: 0,
+          evaluation3: 0,
+          evaluation4: 0,
+          evaluation5: 0,
+          evaluation6: 0,
+          evaluation7: 0,
+          evaluation8: 0,
+        }),
+      });
+    }
   }
 
   // ---------------------------------------------------------------------------
